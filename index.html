@@ -1,96 +1,94 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <title>ORBITAL — Shield the Core (v4)</title>
-  <meta name="description" content="Arcade Canvas. v4: loja in-run (bits), bosses e parry perfeito + upgrades persistentes (células)." />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3CradialGradient id='g' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop stop-color='%2300f7ff'/%3E%3Cstop offset='1' stop-color='%23005494'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='48' fill='url(%23g)'/%3E%3Cpath d='M50 12 A38 38 0 0 1 50 88' stroke='%23fff' stroke-width='8' stroke-linecap='round' fill='none'/%3E%3C/svg%3E" />
-  <style>
-    :root{
-      --bg:#05060a; --fg:#cfe9ff; --muted:#9bb4c7; --panel:#0b1222a6; --border:rgba(255,255,255,.08);
-      --c1:#7a5cff; --c2:#00f7ff; --gold:#ffd166; --danger:#ff3b58; --ok:#4df0a6;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;background:radial-gradient(1200px 800px at 50% 40%, #0b1020 0%, var(--bg) 55%, #030409 100%);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Noto Sans",sans-serif}
-    #wrap{position:fixed;inset:0;display:grid;grid-template-rows:auto 1fr auto;min-height:100%}
-    header,footer{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;gap:12px;backdrop-filter:saturate(140%) blur(6px);background:linear-gradient( to bottom, rgba(10,14,24,.55), rgba(10,14,24,.25) );border-bottom:1px solid var(--border)}
-    footer{border-top:1px solid var(--border);border-bottom:none}
-    header h1{font-size:16px;margin:0;letter-spacing:.1em;font-weight:700}
-    header .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.03);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03)}
-    button, .btn{appearance:none;border:none;padding:8px 12px;border-radius:10px;background:linear-gradient(135deg, rgba(122,92,255,.25), rgba(0,247,255,.15));color:var(--fg);cursor:pointer;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border)}
-    button:hover{filter:brightness(1.1)} button:active{transform:translateY(1px)}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>ORBITAL — Shield the Core (v7.1)</title>
+<meta name="theme-color" content="#045494" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="assets/icon-192.png" />
+<style>
+:root{
+  --brand:#045494; --brand-2:#387db4; --brand-3:#4a83b6; --brand-4:#7caccc; --paper:#d6e2ed;
+  --bg:#0a1420; --fg:#eaf4ff; --muted:#bcd0df; --border:rgba(214,226,237,.14);
+  --panel:rgba(10,20,32,.72); --gold:#ffd166; --danger:#ff3b58; --ok:#4df0a6;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:radial-gradient(1200px 800px at 50% 40%, #0b1322 0%, #0a1420 55%, #070f18 100%);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,"Noto Sans",sans-serif}
+button{appearance:none;border:1px solid var(--border);border-radius:10px;padding:9px 12px;background:linear-gradient(135deg, rgba(4,84,148,.55), rgba(124,172,204,.16));color:var(--fg);cursor:pointer}
+button:disabled{opacity:.6;cursor:not-allowed} button:hover{filter:brightness(1.06)} button:active{transform:translateY(1px)}
+.badge{padding:2px 6px;border-radius:999px;border:1px solid var(--border);background:rgba(214,226,237,.10);font-size:12px}
+.kbd{font:600 12px ui-monospace, Menlo, Consolas, monospace; border:1px solid rgba(214,226,237,.25);padding:2px 6px;border-radius:6px;background:rgba(214,226,237,.06)}
 
-    #main{display:grid;grid-template-columns:1fr 330px;gap:16px;align-items:stretch;padding:12px;overflow:auto}
-    @media (max-width:1000px){ #main{grid-template-columns:1fr} }
+#wrap{position:fixed;inset:0;display:grid;grid-template-rows:auto 1fr auto}
+header,footer{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;gap:12px;background:linear-gradient( to bottom, rgba(4,84,148,.42), rgba(4,84,148,.16) );border-bottom:1px solid var(--border);backdrop-filter:blur(6px)}
+footer{border-top:1px solid var(--border);border-bottom:none;background:linear-gradient( to top, rgba(4,84,148,.20), rgba(4,84,148,.10) )}
+header h1{font-size:16px;margin:0;letter-spacing:.1em;font-weight:800}
+header .pill{display:flex;gap:10px;align-items:center;padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:rgba(214,226,237,.06)}
 
-    #game{width:100%;height:100%;display:grid;place-items:center}
-    canvas{width:min(100%,100vh - 180px);height:min(100vw,100vh - 180px);max-width:100%;max-height:100%;background:radial-gradient( 800px 800px at 50% 50%, rgba(122,92,255,.06), rgba(0,247,255,.03) 40%, transparent 70% );border-radius:22px;box-shadow:0 0 0 1px var(--border), 0 20px 80px rgba(0,0,0,.4), inset 0 0 60px rgba(0,247,255,.06)}
+#main{display:grid;grid-template-columns:1fr 330px;gap:16px;align-items:stretch;padding:12px;overflow:auto}
+@media (max-width:1000px){ #main{grid-template-columns:1fr} }
 
-    #hud{position:fixed;top:60px;left:0;right:0;display:flex;justify-content:center;pointer-events:none}
-    #hud .panel{pointer-events:auto;display:flex;gap:14px;align-items:center;padding:8px 12px;border-radius:12px;background:var(--panel);border:1px solid var(--border);backdrop-filter:blur(6px)}
-    #hud .stat{min-width:120px}
-    #hud .stat b{font-size:18px}
+#game{display:grid;place-items:center}
+canvas{width:min(100%,100vh - 200px);height:min(100vw,100vh - 200px);max-width:100%;max-height:100%;background:radial-gradient( 800px 800px at 50% 50%, rgba(124,172,204,.06), rgba(4,84,148,.04) 40%, transparent 70% );border-radius:22px;box-shadow:0 0 0 1px var(--border), 0 20px 80px rgba(0,0,0,.4), inset 0 0 60px rgba(124,172,204,.06)}
 
-    aside#help{position:relative}
-    #help .card{position:sticky;top:12px;max-height:calc(100vh - 160px);overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 10px 50px rgba(0,0,0,.35);backdrop-filter: blur(6px)}
-    .card h2{margin:0 0 10px;font-size:18px}
-    .kbd{font: 600 12px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; border:1px solid rgba(255,255,255,.2);padding:2px 6px;border-radius:6px;background:rgba(255,255,255,.06)}
-    .hint{color:var(--muted);font-size:13px}
+#hud{position:fixed;top:60px;left:0;right:0;display:flex;justify-content:center;pointer-events:none}
+#hud .panel{pointer-events:auto;display:flex;gap:14px;align-items:center;padding:8px 12px;border-radius:12px;background:var(--panel);border:1px solid var(--border)}
+#hud .stat{min-width:118px}
+#hud .stat b{font-size:18px}
 
-    /* Drawer mobile */
-    #helpDrawer{position:fixed;inset:auto 0 0 0;background:var(--panel);border-top:1px solid var(--border);border-radius:16px 16px 0 0;transform:translateY(110%);transition:transform .25s ease;backdrop-filter: blur(6px);padding:12px;z-index:10}
-    #helpDrawer.open{transform:translateY(0)}
-    #helpDrawer .drag{width:44px;height:5px;background:rgba(255,255,255,.2);border-radius:99px;margin:4px auto 10px}
-    @media (min-width:1001px){ #helpDrawer{display:none} }
+aside#help .card{position:sticky;top:12px;max-height:calc(100vh - 160px);overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px}
 
-    #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:rgba(12,16,28,.85);border:1px solid rgba(255,255,255,.1);padding:8px 12px;border-radius:10px;opacity:0;transition:opacity .25s ease;z-index:20}
-    #toast.show{opacity:1}
+/* Overlays (Menu, PreRun, Pause, Settings) */
+.overlay{position:fixed;inset:0;background:rgba(6,12,20,.60);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:40}
+.overlay.open{display:flex}
+.dialog{width:min(860px,96vw);max-height:86vh;overflow:auto;background:rgba(10,16,28,.95);border:1px solid var(--border);border-radius:16px;padding:16px}
+.row{display:flex;gap:8px;align-items:center}
+.grid{display:grid;gap:12px}
 
-    /* Loja in-run */
-    #shop{position:fixed;inset:0;background:rgba(2,6,14,.6);backdrop-filter: blur(6px);display:none;align-items:center;justify-content:center;z-index:30}
-    #shop.open{display:flex}
-    #shop .box{width:min(820px, 96vw);max-height:86vh;overflow:auto;background:rgba(8,12,22,.92);border:1px solid var(--border);border-radius:16px;padding:16px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(220px,1fr));gap:12px}
-    .card2{border:1px solid var(--border);border-radius:12px;padding:12px;background:rgba(255,255,255,.03)}
-    .price{color:var(--gold);font-weight:700}
+/* Shop */
+#shop .card2{border:1px solid var(--border);border-radius:12px;padding:12px;background:rgba(214,226,237,.05)}
+.rarity{font-size:12px;padding:2px 6px;border-radius:999px;border:1px solid var(--border)}
+.rarity.C{background:rgba(214,226,237,.06)}
+.rarity.R{background:rgba(56,125,180,.22)}
+.rarity.E{background:rgba(255,209,102,.22)}
+.lock{margin-left:auto}
 
-    /* Nova UI */
-    #novaBtn{position:fixed;right:16px;bottom:84px;z-index:9}
-    #novaBar{position:fixed;right:16px;bottom:60px;width:160px;height:6px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden}
-    #novaBar>span{display:block;height:100%;width:0%;background:linear-gradient(90deg, var(--c1), var(--c2))}
-
-    @media (max-width:600px){ header h1{display:none} #hud .stat{min-width:auto} }
-  </style>
+/* Toast */
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:rgba(7,16,26,.86);border:1px solid rgba(214,226,237,.18);padding:8px 12px;border-radius:10px;opacity:0;transition:opacity .25s ease;z-index:60}
+#toast.show{opacity:1}
+</style>
 </head>
 <body>
   <div id="wrap">
     <header>
-      <h1>ORBITAL — Shield the Core <small style="opacity:.6">v4</small></h1>
+      <h1>ORBITAL — Shield the Core <small style="opacity:.6">v7.1</small></h1>
       <div class="pill">
-        <span id="status">Pronto</span>
+        <span id="status">Menu</span>
         <span style="opacity:.5">•</span>
         <span id="fps">FPS: —</span>
+        <span style="opacity:.5">•</span>
+        <span class="badge">Nível <b id="lvl">1</b> · <span id="xpBar">0/1000</span></span>
       </div>
       <div class="row">
         <button id="btnStart">▶ Jogar</button>
         <button id="btnPause" title="P">⏸ Pausar</button>
-        <button id="btnShop" title="S">🛒 Loja (S)</button>
+        <button id="btnShop" title="S">🛒 Loja</button>
+        <button id="btnSettings" title="Configurações">⚙️</button>
         <button id="btnScreenshot" title="K">📸</button>
         <button id="btnMute" title="M">🔊</button>
-        <button id="btnHelp">❔</button>
         <button id="btnLab" title="Upgrades">🧪</button>
       </div>
     </header>
 
     <div id="hud">
       <div class="panel">
-        <div class="stat">Pontuação: <b id="score">0</b> <small id="mult" class="hint">x1</small></div>
+        <div class="stat">Pontuação: <b id="score">0</b> <small id="mult" class="badge">x1</small></div>
         <div class="stat">Bits: <b id="bits">0</b></div>
         <div class="stat">Células: <b id="cells">0</b></div>
         <div class="stat">Recorde: <b id="best">0</b></div>
         <div class="stat">Vidas: <b id="lives">3</b></div>
-        <div class="stat">Fase: <b id="stage">1</b></div>
+        <div class="stat">Fase: <b id="stage">1</b> <span class="badge">Tier <b id="tierTag">I</b></span></div>
       </div>
     </div>
 
@@ -98,322 +96,384 @@
       <section id="game" aria-label="Campo de jogo">
         <canvas id="cvs" width="1024" height="1024"></canvas>
       </section>
-
-      <aside id="help" aria-label="Ajuda e dicas">
-        <div class="card" id="helpCard">
-          <div class="row stretch">
-            <h2>Ajuda & Dicas</h2>
-            <button id="btnCollapseHelp" class="btn" title="Recolher">↔️</button>
-          </div>
-          <p>Desvie ameaças com o escudo giratório. Ganhe <b>bits</b> na rodada para comprar <b>micro-melhorias</b> na <b>Loja</b>. Ao final, você recebe <b>células</b> para upgrades permanentes no <b>Laboratório</b>.</p>
+      <aside id="help">
+        <div class="card">
+          <h2>Fluxo aprimorado</h2>
           <ul>
-            <li><b>Controles:</b> mouse/toque para mirar; <span class="kbd">←/→</span> / <span class="kbd">A/D</span> para giro fino; <span class="kbd">Espaço</span> começa; <span class="kbd">P</span> pausa.</li>
-            <li><b>Loja in‑run:</b> <span class="kbd">S</span> ou botão 🛒</li>
-            <li><b>Habilidade:</b> <span class="kbd">Shift</span> ativa <i>Nova</i> (pulso radial).</li>
+            <li><b>Menu Principal</b> (novo): Jogar, Laboratório, Configurações, Créditos.</li>
+            <li><b>Pré‑Partida</b>: escolha dificuldade (Casual/Clássico/Extremo) e dicas rápidas.</li>
+            <li><b>Pausa</b> (Esc/☰): Retomar, Loja, Lab, Configurações, Recomeçar, Menu.</li>
+            <li><b>Loja</b>: raridades por Tier, <b>Reroll</b> usa <b>Fichas</b> (de boss) antes dos bits, <b>Lock</b>, confirmação opcional.</li>
           </ul>
-          <hr style="border-color:var(--border);opacity:.6" />
-          <div class="row">
-            <div class="inline"><label for="volume">🔊 Volume</label><input id="volume" type="range" min="0" max="1" step="0.01" value="0.7"/></div>
-            <label class="inline"><input type="checkbox" id="reduceMotion"/> Reduzir movimento</label>
-          </div>
+          <p class="muted">Controles: Espaço (iniciar), P (pausa), M (mudo), K (screenshot), S (Loja), R (Rerrolar), Shift (Nova), Esc (menu pausa).</p>
         </div>
       </aside>
     </main>
 
     <footer>
-      <div class="hint">Desktop: <span class="kbd">Mouse</span> • <span class="kbd">←/→</span>/<span class="kbd">A/D</span> • <span class="kbd">Espaço</span> inicia • <span class="kbd">P</span> pausa • <span class="kbd">M</span> mudo • <span class="kbd">S</span> Loja • <span class="kbd">Shift</span> Nova</div>
-      <div class="hint">Mobile: toque e arraste • Botão flutuante ativa Nova</div>
+      <div class="muted">Desktop: <span class="kbd">Mouse</span> • <span class="kbd">←/→</span>/<span class="kbd">A/D</span> • <span class="kbd">Espaço</span> • <span class="kbd">P/Esc</span> • <span class="kbd">S</span> Loja • <span class="kbd">R</span> Rerrolar • <span class="kbd">Shift</span> Nova</div>
+      <div class="muted">Mobile: toque/arraste • Instale como PWA (menu do navegador) para offline</div>
     </footer>
   </div>
 
-  <!-- Drawer mobile -->
-  <div id="helpDrawer" role="dialog" aria-label="Ajuda">
-    <div class="drag"></div>
-    <div class="row stretch" style="margin-bottom:8px">
-      <strong>Ajuda rápida</strong>
-      <button id="btnCloseDrawer" class="btn">Fechar</button>
-    </div>
-    <div class="hint">Arraste para baixo ou toque em Fechar para ocultar</div>
-    <ul>
-      <li><b>Começar:</b> <span class="kbd">Espaço</span> • <b>Pausar:</b> <span class="kbd">P</span></li>
-      <li><b>Mirar:</b> arraste ou mova o mouse; <b>Fino:</b> <span class="kbd">←/→</span> / <span class="kbd">A/D</span></li>
-      <li><b>Loja:</b> <span class="kbd">S</span> • <b>Nova:</b> <span class="kbd">Shift</span> ou botão</li>
-    </ul>
-  </div>
-
-  <!-- Indicador e botão da habilidade Nova -->
-  <div id="novaBar" aria-label="Recarga da Nova"><span></span></div>
-  <button id="novaBtn" class="btn" title="Ativar Nova">⚡ Nova</button>
-
-  <!-- LAB de Upgrades (persistentes) -->
-  <div id="lab" role="dialog" aria-modal="true" aria-label="Laboratório de Upgrades" hidden>
-    <div class="box">
-      <div class="row stretch">
-        <h3>🧪 Laboratório de Upgrades</h3>
-        <div class="inline">Células: <b class="cells" id="cellsLab">0</b>
-          <button id="btnCloseLab" class="btn">Fechar</button>
-        </div>
+  <!-- MENU PRINCIPAL -->
+  <div id="mainMenu" class="overlay open" role="dialog" aria-modal="true" aria-label="Menu Principal">
+    <div class="dialog">
+      <div class="row" style="justify-content:space-between">
+        <h3>Menu Principal</h3>
+        <div class="row"><span class="badge">Nível <b id="lvlMenu">1</b></span><span class="badge">Recorde <b id="bestMenu">0</b></span></div>
       </div>
-      <p class="hint">Upgrades são <b>permanentes</b> (salvos no dispositivo). Partidas rendem células com base na pontuação.</p>
-      <div class="grid" id="upgradesGrid"></div>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-top:8px">
+        <button id="menuPlay">▶ Jogar</button>
+        <button id="menuLab">🧪 Laboratório</button>
+        <button id="menuSettings">⚙️ Configurações</button>
+        <button id="menuCredits">ℹ️ Créditos</button>
+      </div>
+      <div class="muted" style="margin-top:10px">Dica: instale como PWA para experiência completa offline.</div>
     </div>
   </div>
 
-  <!-- LOJA in-run -->
-  <div id="shop" role="dialog" aria-modal="true" aria-label="Loja in-run">
-    <div class="box">
-      <div class="row stretch">
-        <h3>🛒 Loja (bits)</h3>
-        <div class="inline">Bits: <b id="bitsShop">0</b>
-          <button id="btnCloseShop" class="btn">Fechar</button>
+  <!-- PRÉ‑PARTIDA -->
+  <div id="preRun" class="overlay" role="dialog" aria-modal="true" aria-label="Pré‑Partida">
+    <div class="dialog">
+      <h3>Pré‑Partida</h3>
+      <p>Escolha a dificuldade e revise rápidas dicas.</p>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin:8px 0">
+        <label class="card2" style="padding:10px;border:1px solid var(--border);border-radius:12px;background:rgba(214,226,237,.05)">
+          <input type="radio" name="diff" value="casual" checked> <b>Casual</b>
+          <div class="muted">+1 vida, spawns mais lentos, -10% pontos.</div>
+        </label>
+        <label class="card2" style="padding:10px;border:1px solid var(--border);border-radius:12px;background:rgba(214,226,237,.05)">
+          <input type="radio" name="diff" value="classic"> <b>Clássico</b>
+          <div class="muted">Experiência padrão.</div>
+        </label>
+        <label class="card2" style="padding:10px;border:1px solid var(--border);border-radius:12px;background:rgba(214,226,237,.05)">
+          <input type="radio" name="diff" value="extreme"> <b>Extremo</b>
+          <div class="muted">-1 vida, spawns mais rápidos, +20% pontos/bits.</div>
+        </label>
+      </div>
+      <div class="row" style="justify-content:flex-end;margin-top:8px">
+        <button id="preRunCancel">Cancelar</button>
+        <button id="preRunStart">Iniciar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAUSA -->
+  <div id="pauseMenu" class="overlay" role="dialog" aria-modal="true" aria-label="Pausa">
+    <div class="dialog">
+      <h3>Pausado</h3>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:8px">
+        <button id="pmResume">▶ Retomar</button>
+        <button id="pmShop">🛒 Loja</button>
+        <button id="pmLab">🧪 Laboratório</button>
+        <button id="pmSettings">⚙️ Configurações</button>
+        <button id="pmRestart">🔁 Recomeçar</button>
+        <button id="pmMenu">🏠 Menu Principal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIGURAÇÕES -->
+  <div id="settings" class="overlay" role="dialog" aria-modal="true" aria-label="Configurações">
+    <div class="dialog">
+      <div class="row" style="justify-content:space-between">
+        <h3>Configurações</h3>
+        <button id="btnCloseSettings">Fechar</button>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr;gap:10px">
+        <div class="row"><label style="width:200px">Volume:</label><input id="volRange" type="range" min="0" max="1" step="0.01"></div>
+        <label><input id="chkReduce" type="checkbox"> Reduzir movimento</label>
+        <label><input id="chkConfirmBuy" type="checkbox"> Confirmar compras na Loja</label>
+        <label><input id="chkAutoPause" type="checkbox" checked> Pausar ao trocar de aba</label>
+        <div class="row" style="gap:12px;margin-top:6px">
+          <button id="btnResetRun">Reiniciar Partida</button>
+          <button id="btnResetProgress" style="border-color:var(--danger);color:var(--danger)">Zerar Progresso</button>
         </div>
       </div>
-      <p class="hint">Micro-melhorias temporárias para esta rodada. Ofertas se renovam a cada <b>2 fases</b> e quando derrotar um <b>boss</b>.</p>
-      <div class="grid" id="shopGrid"></div>
+    </div>
+  </div>
+
+  <!-- LABORATÓRIO -->
+  <div id="lab" class="overlay" role="dialog" aria-modal="true" aria-label="Laboratório">
+    <div class="dialog">
+      <div class="row" style="justify-content:space-between">
+        <h3>🧪 Laboratório</h3>
+        <div class="row">Células: <b id="cellsLab">0</b> <button id="btnCloseLab">Fechar</button></div>
+      </div>
+      <div id="upgradesGrid" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))"></div>
+    </div>
+  </div>
+
+  <!-- LOJA -->
+  <div id="shop" class="overlay" role="dialog" aria-modal="true" aria-label="Loja">
+    <div class="dialog">
+      <div class="row" style="justify-content:space-between">
+        <h3>🛒 Loja <small class="badge" id="shopTier">Tier I</small></h3>
+        <div class="row" style="gap:10px">
+          <span>Bits: <b id="bitsShop">0</b></span>
+          <span class="badge">Fichas: <b id="tokens">0</b></span>
+          <button id="btnCloseShop">Fechar</button>
+        </div>
+      </div>
+      <div class="row" style="justify-content:space-between;margin:6px 0">
+        <div class="row" style="gap:8px">
+          <button id="btnReroll">🔃 Rerrolar (<span id="rerollCost">10</span> ⬡)</button>
+          <span class="muted">Rerrolar consome <b>Fichas</b> primeiro; sem fichas, usa bits.</span>
+        </div>
+        <div class="muted">Novas ofertas a cada <b>2 fases</b> e ao derrotar <b>boss</b>.</div>
+      </div>
+      <div id="shopGrid" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))"></div>
     </div>
   </div>
 
   <div id="toast" role="status" aria-live="polite"></div>
 
-  <script>
-  // =====================
-  // ORBITAL v4 — Loja in-run, Bosses e Parry Perfeito
-  // =====================
-  const TAU = Math.PI*2; const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)); const lerp=(a,b,t)=>a+(b-a)*t; const angleNorm=a=>{a%=TAU; if(a<0)a+=TAU; return a}; const angleDiff=(a,b)=>{let d=(a-b+Math.PI)%(TAU)-Math.PI; return d<-Math.PI?d+TAU:d};
-  const rand=(a,b)=>a+Math.random()*(b-a);
+<script>
+// ===== Util =====
+const TAU=Math.PI*2; const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)); const lerp=(a,b,t)=>a+(b-a)*t; const angleNorm=a=>{a%=TAU; if(a<0)a+=TAU; return a}; const angleDiff=(a,b)=>{let d=(a-b+Math.PI)%(TAU)-Math.PI; return d<-Math.PI?d+TAU:d};
+const qs=s=>document.querySelector(s); const qsa=s=>[...document.querySelectorAll(s)];
 
-  // UI refs
-  const qs = s=>document.querySelector(s);
-  const cvs=qs('#cvs'), ctx=cvs.getContext('2d');
-  const scoreEl=qs('#score'), bestEl=qs('#best'), livesEl=qs('#lives'), stageEl=qs('#stage'), fpsEl=qs('#fps'), statusEl=qs('#status');
-  const bitsEl=qs('#bits'), cellsEl=qs('#cells'), toastEl=qs('#toast');
-  const btnStart=qs('#btnStart'), btnPause=qs('#btnPause'), btnShop=qs('#btnShop'), btnHelp=qs('#btnHelp'), btnMute=qs('#btnMute'), btnScreenshot=qs('#btnScreenshot'), btnLab=qs('#btnLab');
-  const helpCard=qs('#helpCard'), btnCollapseHelp=qs('#btnCollapseHelp'); const helpDrawer=qs('#helpDrawer'), btnCloseDrawer=qs('#btnCloseDrawer');
-  const volumeSlider=qs('#volume'), reduceMotionChk=qs('#reduceMotion');
-  const novaBtn=qs('#novaBtn'); const novaBar=qs('#novaBar>span');
-  const lab=qs('#lab'), upgradesGrid=qs('#upgradesGrid'), cellsLabEl=qs('#cellsLab'), btnCloseLab=qs('#btnCloseLab');
-  const shop=qs('#shop'), shopGrid=qs('#shopGrid'), btnCloseShop=qs('#btnCloseShop'), bitsShopEl=qs('#bitsShop');
+// PWA register
+if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')){ navigator.serviceWorker.register('./sw.js'); }
 
-  // Persistência
-  const loadJSON=(k,def)=>{ try{ return JSON.parse(localStorage.getItem(k)) ?? def }catch{ return def } };
-  const saveJSON=(k,v)=>localStorage.setItem(k, JSON.stringify(v));
-  const BEST_KEY='orbital_highscore', VOL_KEY='orbital_volume', HELP_KEY='orbital_helpCollapsed', UPG_KEYS='orbital_upgrades_v4', CELLS_KEY='orbital_cells_v4';
+// Refs
+const cvs=qs('#cvs'), ctx=cvs.getContext('2d');
+const scoreEl=qs('#score'), bestEl=qs('#best'), livesEl=qs('#lives'), stageEl=qs('#stage'), fpsEl=qs('#fps'), statusEl=qs('#status');
+const bitsEl=qs('#bits'), cellsEl=qs('#cells'), lvlEl=qs('#lvl'), xpBarEl=qs('#xpBar');
+const tierTag=qs('#tierTag');
+const btnStart=qs('#btnStart'), btnPause=qs('#btnPause'), btnShop=qs('#btnShop'), btnSettings=qs('#btnSettings'), btnScreenshot=qs('#btnScreenshot'), btnMute=qs('#btnMute'), btnLab=qs('#btnLab');
+const mainMenu=qs('#mainMenu'), lvlMenu=qs('#lvlMenu'), bestMenu=qs('#bestMenu');
+const menuPlay=qs('#menuPlay'), menuLab=qs('#menuLab'), menuSettings=qs('#menuSettings');
+const preRun=qs('#preRun'), preRunStart=qs('#preRunStart'), preRunCancel=qs('#preRunCancel');
+const pauseMenu=qs('#pauseMenu'), pmResume=qs('#pmResume'), pmShop=qs('#pmShop'), pmLab=qs('#pmLab'), pmSettings=qs('#pmSettings'), pmRestart=qs('#pmRestart'), pmMenu=qs('#pmMenu');
+const settings=qs('#settings'), btnCloseSettings=qs('#btnCloseSettings');
+const volRange=qs('#volRange'), chkReduce=qs('#chkReduce'), chkConfirmBuy=qs('#chkConfirmBuy'), chkAutoPause=qs('#chkAutoPause');
+const lab=qs('#lab'), upgradesGrid=qs('#upgradesGrid'), btnCloseLab=qs('#btnCloseLab'), cellsLabEl=qs('#cellsLab');
+const shop=qs('#shop'), shopGrid=qs('#shopGrid'), btnCloseShop=qs('#btnCloseShop'), bitsShopEl=qs('#bitsShop'), shopTier=qs('#shopTier');
+const rerollCostEl=qs('#rerollCost'), btnReroll=qs('#btnReroll'), tokensEl=qs('#tokens');
+const toastEl=qs('#toast');
 
-  const defaultUpgrades={ width:0, speed:0, timelens:0, life:0, novaCD:0 };
+// Persistência
+const loadJSON=(k,def)=>{ try{ return JSON.parse(localStorage.getItem(k)) ?? def }catch{ return def } };
+const saveJSON=(k,v)=>localStorage.setItem(k, JSON.stringify(v));
+const BEST_KEY='orbital_highscore'; const VOL_KEY='orbital_volume'; const LS_KEY='orbital_lifetime_v7_1'; const UPG_KEYS='orbital_upgrades_v7_1'; const CELLS_KEY='orbital_cells_v7_1'; const PREF_KEY='orbital_prefs_v7_1';
 
-  const state={
-    running:false, paused:false, gameOver:false,
-    t:0, dt:0, timeScale:1,
-    width:cvs.width, height:cvs.height, center:{x:cvs.width/2,y:cvs.height/2},
-    rBase:Math.min(cvs.width,cvs.height)/2*0.68, rShield:Math.min(cvs.width,cvs.height)/2*0.36, rCore:Math.min(cvs.width,cvs.height)/2*0.09,
-    shieldAngle:0, shieldWidth:TAU*0.07, shieldTargetWidth:TAU*0.07, shieldSpeed:2.6,
-    inputs:{left:false,right:false,mouseAngle:null},
-    threats:[], particles:[],
-    score:0, best:Number(localStorage.getItem(BEST_KEY)||0), combo:0, lives:3, stage:1,
-    spawnTimer:0, spawnInterval:0.8, difficulty:0, reduceMotion:false,
-    audioEnabled:true, muted:false, volume:Number(localStorage.getItem(VOL_KEY)||0.7),
-    helpCollapsed: localStorage.getItem(HELP_KEY)==='1',
+// Prefs
+const prefs = Object.assign({ volume:Number(localStorage.getItem(VOL_KEY)||0.7), reduce:false, confirmBuy:true, autoPause:true, defaultDiff:'classic' }, loadJSON(PREF_KEY, {}));
+volRange.value = String(prefs.volume); chkReduce.checked=prefs.reduce; chkConfirmBuy.checked=prefs.confirmBuy; chkAutoPause.checked=prefs.autoPause;
 
-    // Moedas
-    bits:0, // in-run
-    cells:Number(localStorage.getItem(CELLS_KEY)||0), // meta
+// XP / Nível
+function levelXP(n){ return 1000 + 400*n; }
+function computeLevel(total){ let lvl=0, need=levelXP(0), acc=total; while(acc>=need){ acc-=need; lvl++; need=levelXP(lvl);} return {lvl, cur:acc, need}; }
 
-    // Upgrades persistentes
-    upgrades: loadJSON(UPG_KEYS, defaultUpgrades),
+// Estado
+const state={
+  running:false, paused:false, gameOver:false,
+  t:0, dt:0, timeScale:1,
+  width:cvs.width, height:cvs.height, center:{x:cvs.width/2,y:cvs.height/2},
+  rBase:Math.min(cvs.width,cvs.height)/2*0.68, rShield:Math.min(cvs.width,cvs.height)/2*0.36, rCore:Math.min(cvs.width,cvs.height)/2*0.09,
+  shieldAngle:0, shieldWidth:TAU*0.07, shieldTargetWidth:TAU*0.07, shieldSpeed:2.6, parryWindowRatio:0.30,
+  inputs:{left:false,right:false,mouseAngle:null},
+  threats:[], particles:[],
+  score:0, best:Number(localStorage.getItem(BEST_KEY)||0), lifetime:Number(localStorage.getItem(LS_KEY)||0),
+  combo:0, lives:3, stage:1, spawnTimer:0, spawnInterval:0.8, difficulty:0,
+  muted:false, volume:prefs.volume,
+  bits:0, cells:Number(localStorage.getItem(CELLS_KEY)||0),
+  upgrades: loadJSON(UPG_KEYS, { width:0, speed:0, timelens:0, life:0, novaCD:0 }),
+  novaCooldownBase:12, novaCooldown:0,
+  shopOffers:[], nextShopStage:2, shopLocks:[false,false,false], rerollCost:10,
+  rerollTokens:0,
+  scoreMultTemp:1.0, scoreMultTempUntil:0, widthBoostUntil:0, slowUntil:0, autoAimUntil:0, grace:0, bitsBonus:0, bitsBonusUntil:0, echoRadial:0,
+  boss:null, bossActive:false,
+  // dificuldade
+  diffMode:prefs.defaultDiff, diffMods:{ casual:{life:+1, spawn:1.12, score:0.9, bits:1.0}, classic:{life:0, spawn:1.0, score:1.0, bits:1.0}, extreme:{life:-1, spawn:0.88, score:1.2, bits:1.2} }
+};
 
-    // Habilidade Nova
-    novaCooldownBase:12, novaCooldown:0, novaReady:true,
+function updateLevelUI(){ const {lvl,cur,need}=computeLevel(state.lifetime); lvlEl.textContent=String(lvl); xpBarEl.textContent=`${cur}/${need}`; lvlMenu.textContent=String(lvl); }
+updateLevelUI(); bestEl.textContent=state.best; bestMenu.textContent=state.best; cellsEl.textContent=state.cells;
 
-    // Loja in-run
-    shopOffers:[], nextShopStage:2, scoreMultTempUntil:0, widthBoostUntil:0, slowUntil:0, autoAimUntil:0, grace:0,
+// Áudio
+let audioCtx=null; function ensureAudio(){ if(!audioCtx){ const AC=window.AudioContext||window.webkitAudioContext; audioCtx=AC?new AC():null; } }
+function beep(type='ping', gain=0.02){ if(state.muted) return; ensureAudio(); if(!audioCtx) return; const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='sine'; const now=audioCtx.currentTime; const map={ ping:[880,2200,0.06], hit:[220,70,0.12], power:[330,1320,0.2], nova:[150,40,0.35], perfect:[1200,2200,0.08], boss:[500,200,0.3] }[type]||[880,2200,0.06]; o.frequency.setValueAtTime(map[0],now); o.frequency.exponentialRampToValueAtTime(map[1],now+map[2]); g.gain.setValueAtTime(Math.max(0.0001, gain*state.volume),now); g.gain.exponentialRampToValueAtTime(0.0001,now+Math.max(0.25,map[2])); o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(now+0.4); }
 
-    // Boss
-    boss:null, bossActive:false, bossTimer:0,
-  };
-  bestEl.textContent=state.best; cellsEl.textContent=state.cells; volumeSlider.value=String(state.volume); reduceMotionChk.checked=state.reduceMotion;
+// ===== Controles =====
+function updateMouseAngle(xp,yp){ const r=cvs.getBoundingClientRect(); const x=(xp-r.left)*(cvs.width/r.width); const y=(yp-r.top)*(cvs.height/r.height); state.inputs.mouseAngle=Math.atan2(y-state.center.y,x-state.center.x); }
+cvs.addEventListener('mousemove', e=>updateMouseAngle(e.clientX,e.clientY));
+cvs.addEventListener('touchstart', e=>{ const t=e.touches[0]; updateMouseAngle(t.clientX,t.clientY); });
+cvs.addEventListener('touchmove',  e=>{ const t=e.touches[0]; updateMouseAngle(t.clientX,t.clientY); });
 
-  // ===== Áudio =====
-  let audioCtx=null; function ensureAudio(){ if(!state.audioEnabled) return; if(!audioCtx){ const AC=window.AudioContext||window.webkitAudioContext; audioCtx=AC?new AC():null; } }
-  function beep(type='ping', baseGain=0.02){ if(state.muted) return; ensureAudio(); if(!audioCtx) return; const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='sine'; const now=audioCtx.currentTime;
-    if(type==='ping'){ o.frequency.setValueAtTime(880,now); o.frequency.exponentialRampToValueAtTime(2200, now+0.06);} 
-    else if(type==='hit'){ o.frequency.setValueAtTime(220,now); o.frequency.exponentialRampToValueAtTime(70, now+0.12);} 
-    else if(type==='power'){ o.frequency.setValueAtTime(330,now); o.frequency.exponentialRampToValueAtTime(1320, now+0.2);} 
-    else if(type==='nova'){ o.frequency.setValueAtTime(150,now); o.frequency.exponentialRampToValueAtTime(40, now+0.35);} 
-    else if(type==='perfect'){ o.frequency.setValueAtTime(1200,now); o.frequency.exponentialRampToValueAtTime(2200, now+0.08);} 
-    else if(type==='boss'){ o.frequency.setValueAtTime(500,now); o.frequency.exponentialRampToValueAtTime(200, now+0.3);} 
-    g.gain.setValueAtTime(Math.max(0.0001, baseGain*state.volume), now); g.gain.exponentialRampToValueAtTime(0.0001, now+0.35); o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(now+0.4); }
+window.addEventListener('keydown', e=>{
+  if(e.code==='Escape'){ togglePauseMenu(); }
+  if(e.code==='ArrowLeft'||e.code==='KeyA') state.inputs.left=true;
+  if(e.code==='ArrowRight'||e.code==='KeyD') state.inputs.right=true;
+  if(e.code==='Space'){ if(mainMenu.classList.contains('open')) openPreRun(); else if(!state.running||state.gameOver){ startGame(); } }
+  if(e.code==='KeyP'){ togglePauseMenu(); }
+  if(e.code==='KeyM'){ toggleMute(); }
+  if(e.code==='KeyS'){ toggleShop(); }
+  if(e.code==='KeyK'){ saveScreenshot(); }
+  if(e.code==='ShiftLeft'||e.code==='ShiftRight'){ activateNova(); }
+  if(e.code==='KeyR'){ if(shop.classList.contains('open')) rerollShop(); }
+});
+window.addEventListener('keyup', e=>{ if(e.code==='ArrowLeft'||e.code==='KeyA') state.inputs.left=false; if(e.code==='ArrowRight'||e.code==='KeyD') state.inputs.right=false; });
 
-  // ===== Entradas =====
-  function updateMouseAngle(clientX,clientY){ const rect=cvs.getBoundingClientRect(); const x=(clientX-rect.left)*(cvs.width/rect.width); const y=(clientY-rect.top)*(cvs.height/rect.height); const dx=x-state.center.x, dy=y-state.center.y; state.inputs.mouseAngle=Math.atan2(dy,dx); }
-  cvs.addEventListener('mousemove', e=>updateMouseAngle(e.clientX,e.clientY));
-  cvs.addEventListener('touchstart', e=>{ const t=e.touches[0]; updateMouseAngle(t.clientX,t.clientY); });
-  cvs.addEventListener('touchmove',  e=>{ const t=e.touches[0]; updateMouseAngle(t.clientX,t.clientY); });
+// UI binds
+btnStart.onclick=()=>{ if(mainMenu.classList.contains('open')) openPreRun(); else if(!state.running||state.gameOver) startGame(); };
+btnPause.onclick=()=>togglePauseMenu(); btnSettings.onclick=()=>openSettings(); btnLab.onclick=()=>openLab(); btnShop.onclick=()=>toggleShop(); btnScreenshot.onclick=saveScreenshot; btnMute.onclick=toggleMute;
+menuPlay.onclick=openPreRun; menuLab.onclick=()=>{ mainMenu.classList.remove('open'); openLab(); }; menuSettings.onclick=()=>{ mainMenu.classList.remove('open'); openSettings(); };
+preRunCancel.onclick=()=>{ preRun.classList.remove('open'); mainMenu.classList.add('open'); };
+preRunStart.onclick=()=>{ const sel = (qs('input[name="diff"]:checked')||{}).value || 'classic'; state.diffMode=sel; prefs.defaultDiff=sel; saveJSON(PREF_KEY,prefs); preRun.classList.remove('open'); startGame(); };
+pmResume.onclick=()=>togglePauseMenu(false); pmShop.onclick=()=>{ pauseGame(true); openShop(false); }; pmLab.onclick=()=>{ pauseGame(true); openLab(); }; pmSettings.onclick=openSettings; pmRestart.onclick=()=>{ if(confirm('Recomeçar a partida?')){ pauseMenu.classList.remove('open'); startGame(); } }; pmMenu.onclick=()=>{ if(confirm('Sair para o Menu? Progresso da rodada será perdido.')){ goToMenu(); } };
+btnCloseSettings.onclick=()=>settings.classList.remove('open'); btnCloseLab.onclick=()=>lab.classList.remove('open'); btnCloseShop.onclick=()=>closeShop();
+volRange.oninput=()=>{ state.volume=Number(volRange.value); localStorage.setItem(VOL_KEY,String(state.volume)); prefs.volume=state.volume; saveJSON(PREF_KEY,prefs); };
+chkReduce.onchange=()=>{ prefs.reduce=chkReduce.checked; saveJSON(PREF_KEY,prefs); };
+chkConfirmBuy.onchange=()=>{ prefs.confirmBuy=chkConfirmBuy.checked; saveJSON(PREF_KEY,prefs); };
+chkAutoPause.onchange=()=>{ prefs.autoPause=chkAutoPause.checked; saveJSON(PREF_KEY,prefs); };
+qs('#btnResetRun').onclick=()=>{ if(confirm('Reiniciar partida atual?')) startGame(); };
+qs('#btnResetProgress').onclick=()=>{ if(confirm('Zerar Lifetime/Upgrades/Células/Recorde?')){ localStorage.removeItem(LS_KEY); localStorage.removeItem(UPG_KEYS); localStorage.removeItem(CELLS_KEY); localStorage.removeItem(BEST_KEY); state.lifetime=0; state.upgrades={width:0,speed:0,timelens:0,life:0,novaCD:0}; state.cells=0; state.best=0; saveJSON(UPG_KEYS,state.upgrades); localStorage.setItem(CELLS_KEY,String(0)); localStorage.setItem(BEST_KEY,String(0)); updateLevelUI(); cellsEl.textContent='0'; bestEl.textContent='0'; showToast('Progresso zerado'); } };
 
-  window.addEventListener('keydown', e=>{
-    if(e.code==='ArrowLeft'||e.code==='KeyA') state.inputs.left=true;
-    if(e.code==='ArrowRight'||e.code==='KeyD') state.inputs.right=true;
-    if(e.code==='Space'){ if(!state.running||state.gameOver){ startGame(); } }
-    if(e.code==='KeyP'){ togglePause(); }
-    if(e.code==='KeyM'){ toggleMute(); }
-    if(e.code==='KeyS'){ toggleShop(); }
-    if(e.code==='KeyH'){ toggleHelp(); }
-    if(e.code==='KeyK'){ saveScreenshot(); }
-    if(e.code==='ShiftLeft'||e.code==='ShiftRight'){ activateNova(); }
+window.addEventListener('blur', ()=>{ if(prefs.autoPause && state.running && !state.paused) pauseGame(true); });
+
+// ===== Loja com Tiers + Fichas de Reroll =====
+const RARITY={C:'Comum',R:'Raro',E:'Épico'};
+function shopTierCode(){ if(state.stage>=16) return 'III'; if(state.stage>=8) return 'II'; return 'I'; }
+function updateTierBadges(){ const t=shopTierCode(); tierTag.textContent=t; shopTier.textContent='Tier '+t; }
+function rarityWeights(){ const {lvl}=computeLevel(state.lifetime); const t=shopTierCode(); let base={C:60,R:30,E:10}; if(t==='II') base={C:50,R:35,E:15}; if(t==='III') base={C:40,R:40,E:20}; const bonusR=Math.min(15,Math.floor(lvl*1.2)); const bonusE=Math.min(12,Math.floor(lvl*0.7)); return { C:Math.max(20, base.C - bonusR - Math.floor(bonusE/2)), R: base.R + Math.floor(bonusR*0.8), E: base.E + bonusE } }
+
+const SHOP_CATALOG=[
+  { id:'WIDE', tier:'I', rar:'C', name:'Escudo ++', desc:'+25% largura por 12s', cost:25, apply:()=>{ const base=TAU*0.07*(1+0.06*(state.upgrades.width||0)); state.shieldTargetWidth=base*1.25; state.widthBoostUntil=state.t+12; } },
+  { id:'SCORE', tier:'I', rar:'C', name:'Pontuação +', desc:'+20% por 20s (empilha)', cost:28, apply:()=>{ state.scoreMultTemp=Math.min(2.0,state.scoreMultTemp+0.2); state.scoreMultTempUntil=state.t+20; } },
+  { id:'SLOW', tier:'I', rar:'C', name:'Lente rápida', desc:'0.7x por 6s', cost:22, apply:()=>{ state.slowUntil=Math.max(state.slowUntil,state.t+6); } },
+  { id:'AUTO', tier:'I', rar:'C', name:'Auto-aim', desc:'Assistência 4s', cost:18, apply:()=>{ state.autoAimUntil=Math.max(state.autoAimUntil,state.t+4); } },
+  { id:'NOVA', tier:'I', rar:'R', name:'Recarga NOVA', desc:'Instantânea', cost:20, apply:()=>{ state.novaCooldown=0; updateNovaUI(); } },
+  { id:'BITS+', tier:'II', rar:'R', name:'Bits Booster', desc:'+1 bit/deflect por 15s (até +3)', cost:32, apply:()=>{ state.bitsBonus=Math.min(3,state.bitsBonus+1); state.bitsBonusUntil=state.t+15; } },
+  { id:'GRACE', tier:'II', rar:'R', name:'Graça', desc:'Ignora próximo dano (até 3)', cost:30, apply:()=>{ state.grace=Math.min(3,state.grace+1); } },
+  { id:'PULSE+', tier:'II', rar:'R', name:'Nova +', desc:'-30% cooldown da Nova (20s)', cost:34, apply:()=>{ const old=state.novaCooldownBase; state.novaCooldownBase=Math.max(5,state.novaCooldownBase*0.7); setTimeout(()=>state.novaCooldownBase=old,20000); } },
+  { id:'CHAIN', tier:'III', rar:'E', name:'Eco Radial', desc:'Parry perfeito emite 2 micro-ondas (até 3)', cost:40, apply:()=>{ state.echoRadial=Math.min(3,state.echoRadial+1); } },
+  { id:'AURA', tier:'III', rar:'E', name:'Aura de Escudo', desc:'+10% largura base até o fim', cost:45, apply:()=>{ const base=TAU*0.07*(1+0.06*(state.upgrades.width||0)); state.shieldTargetWidth=base*1.10; } },
+  { id:'MAGNET', tier:'III', rar:'E', name:'Magnet', desc:'Atrai itens dourados por 15s', cost:36, apply:()=>{ state.magnetUntil=state.t+15; } },
+];
+
+function poolByTier(tier){ return SHOP_CATALOG.filter(x=>x.tier===tier); }
+function rollOneOffer(){ const w=rarityWeights(); const bag=[]; for(const k of ['C','R','E']) for(let i=0;i<w[k];i++) bag.push(k); const rar=bag[Math.floor(Math.random()*bag.length)]; const pool=poolByTier(shopTierCode()).filter(i=>i.rar===rar); const src=pool.length? pool: poolByTier(shopTierCode()); return structuredClone(src[Math.floor(Math.random()*src.length)]); }
+function pickOffers(){ const offers=[]; for(let i=0;i<3;i++){ if(state.shopLocks[i] && state.shopOffers[i]) offers[i]=state.shopOffers[i]; else offers[i]=rollOneOffer(); } state.shopOffers=offers; buildShopUI(); }
+
+function buildShopUI(){ shopGrid.innerHTML=''; bitsShopEl.textContent=state.bits; rerollCostEl.textContent=state.rerollCost; tokensEl.textContent=state.rerollTokens; updateTierBadges();
+  state.shopOffers.forEach((it,idx)=>{
+    const card=document.createElement('div'); card.className='card2';
+    const can= state.bits>=it.cost;
+    card.innerHTML=`<div class="row" style="justify-content:space-between"><div><h4 style="margin:0">${it.name}</h4><div class="muted">${it.desc}</div></div><span class="rarity ${it.rar}">${RARITY[it.rar]}</span></div>
+    <div class="row" style="gap:8px;margin-top:8px"><span class="badge">${it.cost} ⬡</span><button class="btnBuy" ${can?'':'disabled'}>Comprar</button><label class="lock"><input type="checkbox" ${state.shopLocks[idx]?'checked':''}/> Lock</label></div>`;
+    const buy=card.querySelector('.btnBuy'); buy.onclick=()=>{
+      if(prefs.confirmBuy){ if(!confirm(`Comprar ${it.name} por ${it.cost} bits?`)) return; }
+      if(state.bits>=it.cost){ state.bits-=it.cost; bitsEl.textContent=state.bits; bitsShopEl.textContent=state.bits; it.apply(); showToast('✔ '+it.name,900); beep('power',0.04); buildShopUI(); } else { showToast('Bits insuficientes',900); }
+    };
+    const lock=card.querySelector('input[type="checkbox"]'); lock.onchange=e=>{ state.shopLocks[idx]=!!e.target.checked; };
+    shopGrid.appendChild(card);
   });
-  window.addEventListener('keyup', e=>{ if(e.code==='ArrowLeft'||e.code==='KeyA') state.inputs.left=false; if(e.code==='ArrowRight'||e.code==='KeyD') state.inputs.right=false; });
-  novaBtn.addEventListener('click', activateNova);
+}
+function openShop(auto=false){ if(!state.running) return; pauseGame(true); shop.classList.add('open'); if(!state.shopOffers.length) pickOffers(); else buildShopUI(); if(auto) showToast('🛒 Novas ofertas!',1000); }
+function closeShop(){ shop.classList.remove('open'); if(state.running) pauseGame(false); }
+function toggleShop(){ if(shop.classList.contains('open')) closeShop(); else openShop(false); }
+btnReroll.onclick=()=>rerollShop();
+function rerollShop(){ if(state.rerollTokens>0){ state.rerollTokens--; tokensEl.textContent=state.rerollTokens; pickOffers(); showToast('🔃 Rerrolado (ficha)',900); return; } if(state.bits>=state.rerollCost){ state.bits-=state.rerollCost; state.rerollCost=Math.min(50,state.rerollCost+5); bitsEl.textContent=state.bits; bitsShopEl.textContent=state.bits; rerollCostEl.textContent=state.rerollCost; pickOffers(); showToast('🔃 Rerrolado',900); } else { showToast('Bits insuficientes',900); } }
+function maybeRefreshShop(){ const locks=[...state.shopLocks]; pickOffers(); state.shopLocks=locks; buildShopUI(); }
 
-  // ===== Loja in-run =====
-  const SHOP_POOL=[
-    { id:'WIDE', name:'Escudo ++', desc:'+25% largura por 12s', cost:25, apply:()=>{ state.widthBoostUntil = state.t + 12; state.shieldTargetWidth = TAU*0.07 * (1+0.06*(state.upgrades.width||0)) * 1.25; setTimeout(()=>{ state.shieldTargetWidth = TAU*0.07 * (1+0.06*(state.upgrades.width||0)); }, 12050); } },
-    { id:'SCORE', name:'Pontuação +', desc:'+20% pontos por 20s', cost:28, apply:()=>{ state.scoreMultTempUntil = state.t + 20; } },
-    { id:'SLOW', name:'Lente rápida', desc:'Time slow 0.7x por 6s', cost:22, apply:()=>{ state.slowUntil = state.t + 6; } },
-    { id:'AUTO', name:'Auto-aim', desc:'Assistência de mira por 4s', cost:18, apply:()=>{ state.autoAimUntil = state.t + 4; } },
-    { id:'HEART', name:'Vida +1', desc:'Ganha uma vida', cost:35, apply:()=>{ state.lives = Math.min(8, state.lives+1); livesEl.textContent=state.lives; } },
-    { id:'NOVA', name:'Recarga NOVA', desc:'Recarga instantânea', cost:20, apply:()=>{ state.novaReady=true; state.novaCooldown=0; updateNovaUI(); } },
-    { id:'GRACE', name:'Graça', desc:'Ignora o próximo dano', cost:30, apply:()=>{ state.grace = Math.min(2, state.grace+1); } },
-  ];
-  function pickOffers(n=3){ const pool=[...SHOP_POOL]; const out=[]; for(let i=0;i<n && pool.length;i++){ const k=Math.floor(Math.random()*pool.length); out.push(pool.splice(k,1)[0]); } return out; }
-  function openShop(){ if(!state.running) return; state.paused=true; statusEl.textContent='Loja'; shop.classList.add('open'); bitsShopEl.textContent = state.bits; buildShopUI(); }
-  function closeShop(){ shop.classList.remove('open'); if(state.running){ state.paused=false; statusEl.textContent='Jogando'; } }
-  function toggleShop(){ if(shop.classList.contains('open')) closeShop(); else openShop(); }
-  btnShop.onclick=toggleShop; btnCloseShop.onclick=closeShop;
-  function buildShopUI(){ shopGrid.innerHTML=''; (state.shopOffers.length? state.shopOffers : (state.shopOffers=pickOffers(3)) );
-    for(const it of state.shopOffers){ const card=document.createElement('div'); card.className='card2'; card.innerHTML=`<h4>${it.name}</h4><div class="hint">${it.desc}</div><div class="row" style="margin-top:8px"><span class="price">${it.cost} ⬡</span><button class="btn">Comprar</button></div>`; const btn=card.querySelector('button'); btn.onclick=()=>{ if(state.bits>=it.cost){ state.bits-=it.cost; bitsEl.textContent=state.bits; bitsShopEl.textContent=state.bits; it.apply(); showToast('✔ Comprado: '+it.name, 900); beep('power',0.04);} else showToast('Bits insuficientes', 900); }; shopGrid.appendChild(card);} }
+// ===== Laboratório =====
+const UPG_CFG={ width:{name:'Escudo mais largo',info:'+6% por nível',base:50,max:5}, speed:{name:'Giro mais rápido',info:'+15% por nível',base:60,max:5}, timelens:{name:'Lente de tempo+',info:'+0,5s',base:80,max:5}, life:{name:'Vida inicial+',info:'+1',base:120,max:3}, novaCD:{name:'Nova mais frequente',info:'-1,2s',base:90,max:5} };
+function upgCost(k){ const l=state.upgrades[k]||0; return Math.round( UPG_CFG[k].base * Math.pow(l+1,2) ); }
+function openLab(){ lab.classList.add('open'); renderUpgrades(); cellsLabEl.textContent=state.cells; pauseGame(true); }
+function renderUpgrades(){ upgradesGrid.innerHTML=''; for(const k of Object.keys(UPG_CFG)){ const cfg=UPG_CFG[k]; const lv=state.upgrades[k]||0; const mx=cfg.max; const cost=upgCost(k); const div=document.createElement('div'); div.className='card2'; div.style.padding='12px'; div.style.border='1px solid var(--border)'; div.style.borderRadius='12px'; div.innerHTML=`<h4>${cfg.name}</h4><div class="muted">${cfg.info}</div><div class="row" style="gap:10px;margin:8px 0"><span class="badge">Nível <b>${lv}</b>/${mx}</span><span class="badge">${cost} ⚙️</span></div><button class="btnBuyUpg" ${lv<mx?'':'disabled'}>Comprar</button>`; const btn=div.querySelector('.btnBuyUpg'); btn.onclick=()=>{ if(state.cells<cost) return showToast('Células insuficientes'); state.cells-=cost; localStorage.setItem(CELLS_KEY,String(state.cells)); state.upgrades[k]=lv+1; saveJSON(UPG_KEYS,state.upgrades); cellsEl.textContent=state.cells; cellsLabEl.textContent=state.cells; renderUpgrades(); showToast('Upgrade: '+cfg.name,900); if(!state.running){ applyUpgradesToStats(); livesEl.textContent=state.lives; } }; upgradesGrid.appendChild(div);} }
 
-  // Renovar ofertas a cada 2 fases e após boss
-  function maybeRefreshShop(){ state.shopOffers = pickOffers(3); if(shop.classList.contains('open')) buildShopUI(); }
+// ===== Jogo =====
+function applyUpgradesToStats(){ const u=state.upgrades; const widthMult=1+0.06*(u.width||0); state.shieldTargetWidth=TAU*0.07*widthMult; state.shieldWidth=state.shieldTargetWidth; state.shieldSpeed=2.6*(1+0.15*(u.speed||0)); state.lives=3+(u.life||0); state.novaCooldownBase=Math.max(5,12-1.2*(u.novaCD||0)); }
+function startGame(){ state.running=true; state.paused=false; state.gameOver=false; mainMenu.classList.remove('open'); pauseMenu.classList.remove('open'); lab.classList.remove('open'); shop.classList.remove('open'); settings.classList.remove('open'); statusEl.textContent='Jogando'; state.t=0; state.dt=0; state.timeScale=1; state.shieldAngle=0; state.threats.length=0; state.particles.length=0; state.score=0; state.combo=0; state.stage=1; state.difficulty=0; state.spawnInterval=0.8; state.spawnTimer=0; state.novaCooldown=0; state.bits=0; state.grace=0; state.bossActive=false; state.boss=null; state.nextShopStage=2; state.rerollCost=10; state.shopLocks=[false,false,false]; state.echoRadial=0; // dificuldade
+  applyUpgradesToStats(); const d=state.diffMods[state.diffMode]||state.diffMods.classic; state.lives = clamp(state.lives + d.life, 1, 9); state.spawnInterval *= d.spawn; document.getElementById('mult').textContent='x1'; bitsEl.textContent=0; scoreEl.textContent=0; livesEl.textContent=state.lives; cellsEl.textContent=state.cells; updateNovaUI(); ensureAudio(); }
 
-  // ===== LAB (persistente) =====
-  const UPG_CFG={ width:{name:'Escudo mais largo',info:'+6% por nível',base:50,max:5}, speed:{name:'Giro mais rápido',info:'+15% por nível',base:60,max:5}, timelens:{name:'Lente de tempo+',info:'+0,5s',base:80,max:5}, life:{name:'Vida inicial+',info:'+1',base:120,max:3}, novaCD:{name:'Nova mais frequente',info:'-1,2s',base:90,max:5} };
-  function upgCost(key){ const lvl=state.upgrades[key]||0; return Math.round( UPG_CFG[key].base * Math.pow(lvl+1, 2) ); }
-  function openLab(){ lab.hidden=false; if(state.running && !state.paused) togglePause(); renderUpgrades(); cellsLabEl.textContent=state.cells; }
-  function closeLab(){ lab.hidden=true; }
-  btnLab.addEventListener('click', openLab); btnCloseLab.addEventListener('click', closeLab);
-  function renderUpgrades(){ upgradesGrid.innerHTML=''; for(const key of Object.keys(UPG_CFG)){ const cfg=UPG_CFG[key]; const lvl=state.upgrades[key]||0; const max=cfg.max; const canMore=lvl<max; const cost=upgCost(key); const div=document.createElement('div'); div.className='card2'; div.innerHTML = `<h4>${cfg.name}</h4><div class="hint">${cfg.info}</div><div class="row" style="margin:8px 0 6px"><span class="hint">Nível: <b>${lvl}</b>/${max}</span><span class="price">${cost} ⚙️</span></div><div class="row"><button ${canMore?'':'disabled'} class="btn" data-upg="${key}">Comprar</button></div>`; upgradesGrid.appendChild(div);} upgradesGrid.querySelectorAll('button[data-upg]').forEach(btn=>{ btn.addEventListener('click', ()=>{ const key=btn.getAttribute('data-upg'); const cost=upgCost(key); const lvl=state.upgrades[key]||0; const max=UPG_CFG[key].max; if(lvl>=max) return; if(state.cells<cost){ showToast('Células insuficientes'); return; } state.cells-=cost; localStorage.setItem(CELLS_KEY,String(state.cells)); state.upgrades[key]=lvl+1; saveJSON(UPG_KEYS,state.upgrades); cellsEl.textContent=state.cells; cellsLabEl.textContent=state.cells; renderUpgrades(); showToast('Upgrade comprado: '+UPG_CFG[key].name, 1000); if(!state.running){ applyUpgradesToStats(); livesEl.textContent=state.lives; } }); }); }
+function endRunRewards(){ const gained = Math.max(1, Math.floor(state.score/120)); state.cells += gained; localStorage.setItem(CELLS_KEY, String(state.cells)); cellsEl.textContent=state.cells; cellsLabEl.textContent=state.cells; state.lifetime += state.score; localStorage.setItem(LS_KEY, String(state.lifetime)); updateLevelUI(); showToast('⛭ '+gained+' células • ⬆ Lifetime +'+state.score, 2000); }
+function gameOver(){ state.running=false; state.gameOver=true; statusEl.textContent='Game Over'; showToast('Game Over • Pontos: '+state.score, 2500); endRunRewards(); if(state.score>state.best){ state.best=state.score; localStorage.setItem(BEST_KEY, state.best); bestEl.textContent=state.best; bestMenu.textContent=state.best; showToast('🏆 Novo recorde!', 1600); } setTimeout(()=>pauseMenu.classList.add('open'),600); }
 
-  // ===== Boss =====
-  function spawnBoss(){ state.bossActive=true; const hpBase=30 + Math.floor(state.difficulty*0.8); state.boss = { hp:hpBase, angle:Math.random()*TAU, rot:rand(-0.5,0.5), fireTimer:0, fireInterval:1.2, r: state.rBase*0.82, color:'#ffba49' }; showToast('👾 Boss!'); beep('boss',0.05); }
-  function updateBoss(dt){ if(!state.bossActive||!state.boss) return; const b=state.boss; b.angle = angleNorm(b.angle + b.rot*dt); b.fireTimer -= dt; if(b.fireTimer<=0){ b.fireTimer += Math.max(0.5, b.fireInterval - state.difficulty*0.01); // atira em leque
-      const spread=TAU/6; for(let i=-2;i<=2;i++){ const a=angleNorm(b.angle + i*(spread/5)); spawnThreatAt(a, 100 + 10*state.difficulty, false, '#ff8a7a'); } }
-    if(b.hp<=0){ // morre
-      state.bossActive=false; state.boss=null; showToast('✅ Boss derrotado! +40 bits', 1600); state.bits += 40; bitsEl.textContent=state.bits; maybeRefreshShop(); }
-  }
+function pauseGame(p=true){ state.paused=p; statusEl.textContent=p? 'Pausado':'Jogando'; }
+function togglePauseMenu(force){ const want = (typeof force==='boolean')? force : !pauseMenu.classList.contains('open'); if(!state.running) return; if(want){ pauseGame(true); pauseMenu.classList.add('open'); } else { pauseMenu.classList.remove('open'); pauseGame(false); } }
+function openSettings(){ settings.classList.add('open'); pauseGame(true); }
+function goToMenu(){ state.running=false; state.paused=false; mainMenu.classList.add('open'); pauseMenu.classList.remove('open'); }
 
-  // ===== Entidades =====
-  function spawnThreat(){ const kindRand=Math.random(); let type='normal'; if(state.difficulty>20 && kindRand<0.20) type='fast'; if(state.difficulty>35 && kindRand<0.35) type='snake'; const angle=Math.random()*TAU; let speed=70+10*state.difficulty+Math.random()*25; if(type==='fast') speed*=1.35; const special=Math.random()<Math.min(0.05+state.difficulty*0.002,0.20); const color = special? '#ffd166' : (type==='fast'? '#ff8a7a':'#7a5cff'); const th={ angle, r:state.rBase*0.98, vr:-speed, alive:true, deflected:false, color, special, type }; if(type==='snake'){ th.wigA=Math.random()*TAU; th.wigF=2+Math.random()*2; } state.threats.push(th); }
-  function spawnThreatAt(angle, speed, special=false, color='#7a5cff'){ state.threats.push({ angle, r:state.rBase*0.98, vr:-speed, alive:true, deflected:false, color: special? '#ffd166': color, special, type:'bossShot' }); }
-  function addParticles(x,y,color,count=18,spread=TAU){ for(let i=0;i<count;i++){ const a=Math.random()*spread; const v=60+Math.random()*220; state.particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:0.6+Math.random()*0.4,age:0,color}); } }
+function toggleMute(){ state.muted=!state.muted; btnMute.textContent= state.muted? '🔇':'🔊'; }
+function saveScreenshot(){ const a=document.createElement('a'); a.download='orbital-screenshot.png'; a.href=cvs.toDataURL('image/png'); a.click(); showToast('📸 Screenshot salva'); }
 
-  // ===== Jogo =====
-  function applyUpgradesToStats(){ const u=state.upgrades; const widthMult = 1 + 0.06*(u.width||0); state.shieldTargetWidth = TAU*0.07 * widthMult; state.shieldWidth = state.shieldTargetWidth; state.shieldSpeed = 2.6 * (1 + 0.15*(u.speed||0)); state.lives = 3 + (u.life||0); state.novaCooldownBase = Math.max(5, 12 - 1.2*(u.novaCD||0)); }
+// NOVA
+function updateNovaUI(){ const pct=1 - clamp(state.novaCooldown/state.novaCooldownBase,0,1); const bar=qs('#novaBar>span'); if(bar){ bar.style.width=(pct*100).toFixed(1)+'%'; } }
+function activateNova(){ if(!state.running||state.paused) return; if(state.novaCooldown>0) return; const mult = (state.diffMode==='extreme')? 0.85:1.0; state.novaCooldown=state.novaCooldownBase*mult; beep('nova',0.05); addParticles(state.center.x,state.center.y,'#7caccc',120); const inner=state.rShield-40, outer=state.rShield+120; for(const th of state.threats){ if(!th.alive||th.deflected) continue; if(th.r>=inner && th.r<=outer){ th.deflected=true; th.vr=Math.abs(th.vr)*1.15; addParticles(state.center.x+Math.cos(th.angle)*state.rShield, state.center.y+Math.sin(th.angle)*state.rShield, th.color, 12); state.score += Math.floor(8*state.scoreMultTemp); } } scoreEl.textContent=state.score; showToast('⚡ Nova!'); }
 
-  function startGame(){ state.running=true; state.paused=false; state.gameOver=false; state.t=0; state.dt=0; state.timeScale=1; state.shieldAngle=0; state.threats.length=0; state.particles.length=0; state.score=0; state.combo=0; state.stage=1; state.difficulty=0; state.spawnInterval=0.8; state.spawnTimer=0; state.novaCooldown=0; state.novaReady=true; state.bits=0; state.grace=0; state.bossActive=false; state.boss=null; state.nextShopStage=2; bitsEl.textContent=0; scoreEl.textContent=0; livesEl.textContent=0; statusEl.textContent='Jogando'; if(audioCtx && audioCtx.state==='suspended') audioCtx.resume(); applyUpgradesToStats(); livesEl.textContent=state.lives; cellsEl.textContent=state.cells; document.getElementById('mult').textContent='x1'; updateNovaUI(); maybeRefreshShop(); }
+// Pontuação & Bits
+function onDeflect(th, perfect=false){ th.deflected=true; th.vr=Math.abs(th.vr)*(th.type==='fast'?1.1:1); const x=state.center.x+Math.cos(th.angle)*state.rShield; const y=state.center.y+Math.sin(th.angle)*state.rShield; addParticles(x,y, th.special?'#ffd166':th.color, th.special?36:18); beep(th.special? 'power': (perfect? 'perfect':'ping'), th.special?0.04:(perfect?0.035:0.02)); const base=10+Math.floor(state.difficulty*0.6); state.combo=Math.min(50,state.combo+1); const mult=1+Math.floor(state.combo/8); let add=(th.special?50:base)*mult; const d=state.diffMods[state.diffMode]; add=Math.floor(add * state.scoreMultTemp * (d?d.score:1)); state.score += add; scoreEl.textContent=state.score; document.getElementById('mult').textContent='x'+mult; let bitsAdd = ((th.special?4:1) + (perfect?2:0) + ((state.t<=state.bitsBonusUntil)? (state.bitsBonus||0):0)) * (d?d.bits:1); state.bits += Math.floor(bitsAdd); bitsEl.textContent=state.bits; if(th.special) applyPower(); if(state.bossActive && state.boss){ state.boss.hp -= (perfect?3:1); if(state.boss.hp<0) state.boss.hp=0; } if(perfect && state.echoRadial){ for(let i=0;i<state.echoRadial;i++){ const aa=angleNorm(th.angle + (i%2===0?0.12:-0.12)); spawnThreatAt(aa,120,false,'#4a83b6','echo'); } } }
 
-  function endRunRewards(){ const gained = Math.max(1, Math.floor(state.score/120)); state.cells += gained; localStorage.setItem(CELLS_KEY, String(state.cells)); cellsEl.textContent=state.cells; cellsLabEl.textContent=state.cells; showToast('⛭ Você ganhou '+gained+' células', 2000); }
+function hitCore(){ if(state.grace>0){ state.grace--; showToast('🛡️ Graça consumida'); return; } beep('hit',0.03); state.lives--; state.combo=0; showToast('❌ Dano recebido',900); if(state.lives<=0){ gameOver(); } }
+function applyPower(){ const u=state.upgrades; const roll=Math.random(); if(roll<0.4){ const extra=(u.timelens||0)*0.5; const dur=2.2+extra; state.timeScale=0.45; showToast('⏳ Lente de tempo',700); setTimeout(()=>state.timeScale=1, dur*1000); } else if(roll<0.8){ const target=TAU*0.07*(1+0.06*(u.width||0)); state.shieldTargetWidth=target*1.6; showToast('🛡️ Escudo amplo',700); setTimeout(()=>state.shieldTargetWidth=target,2600); } else { state.lives=Math.min(8,state.lives+1); showToast('💚 Vida extra',900); livesEl.textContent=state.lives; } }
 
-  function gameOver(){ state.running=false; state.gameOver=true; statusEl.textContent='Game Over'; showToast('Game Over • Pontos: '+state.score, 3000); endRunRewards(); if(state.score>state.best){ state.best=state.score; localStorage.setItem(BEST_KEY, state.best); bestEl.textContent=state.best; showToast('🏆 Novo recorde!', 1800); } }
+// Spawns & Bosses
+function spawnThreat(){ const r=Math.random(); let type='normal'; if(state.difficulty>20 && r<0.20) type='fast'; if(state.difficulty>35 && r<0.35) type='snake'; const angle=Math.random()*TAU; let speed=70+10*state.difficulty+Math.random()*25; if(type==='fast') speed*=1.35; const special=Math.random()<Math.min(0.05+state.difficulty*0.002,0.20); const color=special?'#ffd166':(type==='fast'?'#ff8a7a':'#4a83b6'); const th={ angle, r:state.rBase*0.98, vr:-speed, alive:true, deflected:false, color, special, type }; if(type==='snake'){ th.wigA=Math.random()*TAU; th.wigF=2+Math.random()*2; } state.threats.push(th); }
+function spawnThreatAt(angle,speed,special=false,color='#4a83b6',type='bossShot'){ state.threats.push({ angle, r:state.rBase*0.98, vr:-speed, alive:true, deflected:false, color:special?'#ffd166':color, special, type }); }
+function spawnMine(angle){ state.threats.push({ angle, r:state.rShield+160, vr:-40, alive:true, deflected:false, color:'#7caccc', special:false, type:'mine', omega:0.9 }); }
+function addParticles(x,y,color,count=18,spread=TAU){ for(let i=0;i<count;i++){ const a=Math.random()*spread; const v=60+Math.random()*220; state.particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:0.6+Math.random()*0.4,age:0,color}); } }
 
-  function togglePause(){ if(!state.running) return; state.paused=!state.paused; statusEl.textContent=state.paused? 'Pausado':'Jogando'; }
-  function toggleMute(){ state.muted=!state.muted; btnMute.textContent = state.muted? '🔇' : '🔊'; }
-  function toggleHelp(){ if(window.matchMedia('(min-width:1001px)').matches){ state.helpCollapsed=!state.helpCollapsed; helpCard.style.display = state.helpCollapsed? 'none':'block'; localStorage.setItem(HELP_KEY, state.helpCollapsed?'1':'0'); } else { helpDrawer.classList.toggle('open'); } }
+function spawnBoss(){ state.bossActive=true; const which=(Math.floor(state.stage/5)%2===1)?'laser':'astro'; const hp=34+Math.floor(state.difficulty*0.9); if(which==='laser'){
+  state.boss={kind:'laser',hp,angle:Math.random()*TAU,sweep:0.9,dir:Math.random()<0.5?1:-1,phase:'charge',t:0,chargeTime:2.0,fireTime:2.4,restTime:1.4,fireCooldown:0};
+} else {
+  state.boss={kind:'astro',hp,angle:Math.random()*TAU,rot:0.35*(Math.random()<0.5?-1:1),pulseT:0,pulseEvery:3.0,mode:'pull',mineT:0,mineEvery:2.2};
+}
+showToast('👾 Boss!'); beep('boss',0.05); }
+function updateBoss(dt){ if(!state.bossActive||!state.boss) return; const b=state.boss; if(b.kind==='laser'){ b.t+=dt; if(b.phase==='charge'){ if(b.t>=b.chargeTime){ b.phase='fire'; b.t=0; b.fireCooldown=0; } } else if(b.phase==='fire'){ b.fireCooldown-=dt; if(b.fireCooldown<=0){ b.fireCooldown=0.06; const sweepA=(b.t/b.fireTime-0.5)*b.sweep*b.dir; const a=angleNorm(b.angle+sweepA); spawnThreatAt(a,130+18*state.difficulty,false,'#ff8a7a'); } if(b.t>=b.fireTime){ b.phase='rest'; b.t=0; } } else if(b.phase==='rest'){ if(b.t>=b.restTime){ b.phase='charge'; b.t=0; b.angle=angleNorm(b.angle+(Math.random()*1.6-0.8)); b.dir*=-1; } } } else {
+  b.angle=angleNorm(b.angle+b.rot*dt); b.pulseT+=dt; if(b.pulseT>=b.pulseEvery){ b.pulseT=0; b.mode=(b.mode==='pull'?'push':'pull'); showToast(b.mode==='pull'?'↘️ Gravidade: puxando':'↗️ Gravidade: empurrando',900); }
+  b.mineT+=dt; if(b.mineT>=b.mineEvery){ b.mineT=0; spawnMine(b.angle+(Math.random()*1.2-0.6)); }
+  const acc=(b.mode==='pull'?-40:40); for(const th of state.threats){ if(!th.alive||th.deflected) continue; const dr=state.rShield-th.r; th.vr+=(acc+Math.sign(dr)*20)*dt*0.35; }
+}
+if(state.boss && state.boss.hp<=0){ state.bossActive=false; state.boss=null; showToast('✅ Boss derrotado! +40 bits +1 Ficha',1600); state.bits+=40; state.rerollTokens+=1; bitsEl.textContent=state.bits; tokensEl.textContent=state.rerollTokens; maybeRefreshShop(); }
+}
 
-  btnStart.onclick=startGame; btnPause.onclick=togglePause; btnHelp.onclick=toggleHelp; btnScreenshot.onclick=()=>saveScreenshot(); btnMute.onclick=toggleMute; btnCloseDrawer.onclick=()=>helpDrawer.classList.remove('open'); btnCollapseHelp.onclick=()=>{ state.helpCollapsed=!state.helpCollapsed; helpCard.style.display=state.helpCollapsed?'none':'block'; localStorage.setItem(HELP_KEY, state.helpCollapsed?'1':'0'); };
+// Update loop
+function update(dt){ if(!state.running||state.paused) return; state.difficulty+=dt; const d=state.diffMods[state.diffMode]||state.diffMods.classic; state.spawnInterval=clamp(0.85 - state.difficulty*0.015,0.30,0.85) * (d?d.spawn:1);
+  state.stage=1+Math.floor(state.difficulty/20); updateTierBadges(); if(state.stage>=state.nextShopStage){ state.nextShopStage+=2; maybeRefreshShop(); openShop(true); }
+  if(!state.bossActive && state.stage>1 && state.stage%5===0) spawnBoss(); updateBoss(dt);
+  state.timeScale = (state.t<=state.slowUntil)? 0.7:1; if(state.t>state.scoreMultTempUntil) state.scoreMultTemp=1.0; if(state.t>state.bitsBonusUntil) state.bitsBonus=0;
+  if(state.inputs.mouseAngle!=null){ let target=state.inputs.mouseAngle; if(state.t<=state.autoAimUntil && state.threats.length){ const near=state.threats.reduce((p,c)=> (c.vr<0 && !c.deflected && c.r>state.rShield-80 && c.r<state.rShield+140 && Math.abs(angleDiff(c.angle,state.shieldAngle))<Math.PI/3 && (!p||c.r<p.r))? c:p, null); if(near) target=near.angle; } let diff=angleDiff(target,state.shieldAngle); state.shieldAngle=angleNorm(state.shieldAngle + diff*clamp(dt*7,0,0.25)); }
+  if(state.inputs.left) state.shieldAngle=angleNorm(state.shieldAngle - state.shieldSpeed*dt);
+  if(state.inputs.right) state.shieldAngle=angleNorm(state.shieldAngle + state.shieldSpeed*dt);
+  const baseTarget=TAU*0.07*(1+0.06*(state.upgrades.width||0)); if(state.t>state.widthBoostUntil) state.shieldTargetWidth=baseTarget; state.shieldWidth=lerp(state.shieldWidth,state.shieldTargetWidth, 1-Math.exp(-dt*7));
+  state.spawnTimer-=dt; if(state.spawnTimer<=0 && !state.bossActive){ state.spawnTimer+=state.spawnInterval*(0.6+Math.random()*0.8); spawnThreat(); }
+  const rm=[]; for(const th of state.threats){ if(th.type==='snake'){ th.wigA+=(th.wigF||2)*dt; th.angle=angleNorm(th.angle+Math.sin(th.wigA)*0.003);} if(th.type==='mine'){ th.angle=angleNorm(th.angle+(th.omega||1)*dt*0.6);} th.r += th.vr*dt*state.timeScale; const near=(th.vr<0 && th.r<=state.rShield+12 && th.r>=state.rShield-18) || (th.vr>0 && th.r>=state.rShield-18 && th.r<=state.rShield+20); if(near && !th.deflected && th.alive){ const df=Math.abs(angleDiff(th.angle,state.shieldAngle)); const perfect = df<=state.shieldWidth*(state.parryWindowRatio*0.5); if(df<=state.shieldWidth*0.5) onDeflect(th, perfect); } if(th.r<=state.rCore && th.alive && !th.deflected){ th.alive=false; addParticles(state.center.x,state.center.y,'#ff3b58',60); hitCore(); livesEl.textContent=state.lives; if(state.lives<=0) rm.push(th);} if(th.r>=state.rBase*1.02 || th.r<2){ rm.push(th); } } if(rm.length) state.threats=state.threats.filter(x=>!rm.includes(x));
+  for(const p of state.particles){ p.age+=dt*state.timeScale; p.x+=p.vx*dt; p.y+=p.vy*dt; const damp=prefs.reduce?0.995:0.992; p.vx*=damp; p.vy*=damp; } state.particles=state.particles.filter(p=>p.age<p.life);
+  if(state.novaCooldown>0){ state.novaCooldown-=dt; if(state.novaCooldown<=0){ state.novaCooldown=0; showToast('⚡ Nova pronta'); } updateNovaUI(); }
+  state.t += dt;
+}
 
-  // ===== Nova =====
-  function updateNovaUI(){ const pct = 1 - clamp(state.novaCooldown/state.novaCooldownBase, 0, 1); novaBar.style.width = (pct*100).toFixed(1)+'%'; novaBtn.disabled = state.novaCooldown>0; novaBtn.style.opacity = state.novaCooldown>0? '0.6':'1'; }
-  function activateNova(){ if(!state.running||state.paused) return; if(state.novaCooldown>0) return; state.novaCooldown=state.novaCooldownBase; beep('nova',0.05); addParticles(state.center.x,state.center.y,'#00f7ff',120); const inner=state.rShield-40, outer=state.rShield+120; for(const th of state.threats){ if(!th.alive||th.deflected) continue; if(th.r>=inner && th.r<=outer){ th.deflected=true; th.vr=Math.abs(th.vr)*1.15; addParticles(state.center.x+Math.cos(th.angle)*state.rShield, state.center.y+Math.sin(th.angle)*state.rShield, th.color, 12); state.score += 8; } } scoreEl.textContent=state.score; showToast('⚡ Nova!'); }
+// Render
+let last=performance.now(), acc=0, frames=0; function loop(now){ const rawdt=Math.min(0.05,(now-last)/1000); last=now; update(rawdt); draw(); frames++; acc+=1/rawdt; if(frames>=20){ fpsEl.textContent='FPS: '+Math.round(acc/frames); frames=0; acc=0; } requestAnimationFrame(loop);} requestAnimationFrame(loop);
+function draw(){ const w=cvs.width,h=cvs.height; ctx.clearRect(0,0,w,h); ctx.save(); ctx.translate(state.center.x,state.center.y);
+  // BG rings
+  const bg=ctx.createRadialGradient(0,0,state.rCore*0.2,0,0,state.rBase); bg.addColorStop(0,'rgba(124,172,204,.08)'); bg.addColorStop(1,'rgba(4,84,148,.05)'); ctx.fillStyle=bg; ctx.beginPath(); ctx.arc(0,0,state.rBase,0,TAU); ctx.fill(); ctx.globalCompositeOperation='lighter'; ctx.strokeStyle='rgba(124,172,204,.12)'; ctx.lineWidth=2; ctx.shadowColor='rgba(124,172,204,.35)'; ctx.shadowBlur=8; for(let i=0;i<3;i++){ ctx.beginPath(); ctx.arc(0,0, state.rShield + (i-1)*24, 0, TAU); ctx.stroke(); } ctx.shadowBlur=0; ctx.globalCompositeOperation='source-over';
+  // core
+  const corePulse=1+Math.sin(state.t*3)*0.04; ctx.fillStyle='#7caccc'; ctx.shadowColor='#7caccc'; ctx.shadowBlur=30; ctx.beginPath(); ctx.arc(0,0, state.rCore*corePulse, 0, TAU); ctx.fill(); ctx.shadowBlur=0;
+  // boss visuals
+  if(state.bossActive && state.boss){ const b=state.boss; if(b.kind==='laser'){ const sweep=b.sweep||0.8; const dir=b.dir||1; const a0=b.angle - sweep*0.5*dir; const a1=b.angle + sweep*0.5*dir; ctx.save(); ctx.strokeStyle='rgba(255,120,90,.5)'; ctx.lineWidth=12; ctx.shadowColor='rgba(255,120,90,.6)'; ctx.shadowBlur=12; ctx.beginPath(); const span=(b.phase==='charge')? [b.angle-0.15, b.angle+0.15] : [a0,a1]; ctx.arc(0,0, state.rShield+90, span[0], span[1]); ctx.stroke(); ctx.restore(); } else { ctx.save(); ctx.strokeStyle='rgba(255,186,73,.35)'; ctx.lineWidth=10; ctx.beginPath(); ctx.arc(0,0, state.rShield+120, 0, TAU); ctx.stroke(); ctx.restore(); } ctx.save(); ctx.fillStyle='#ffd166'; ctx.font='bold 22px system-ui'; ctx.textAlign='center'; ctx.fillText('BOSS '+state.boss.hp, 0, -state.rShield-140); ctx.restore(); }
+  // shield
+  const aw=state.shieldWidth; ctx.save(); ctx.rotate(state.shieldAngle); const g2=ctx.createLinearGradient(state.rShield-aw*0, -8, state.rShield+aw*0, 8); g2.addColorStop(0,'#387db4'); g2.addColorStop(1,'#7caccc'); ctx.strokeStyle=g2; ctx.lineWidth=16; ctx.lineCap='round'; ctx.shadowColor='#387db4'; ctx.shadowBlur=20; ctx.beginPath(); ctx.arc(0,0, state.rShield, -aw/2, aw/2); ctx.stroke(); const pw=state.shieldWidth*state.parryWindowRatio; const g3=ctx.createLinearGradient(state.rShield-10,0,state.rShield+10,0); g3.addColorStop(0,'rgba(255,209,102,.95)'); g3.addColorStop(1,'rgba(255,255,255,.95)'); ctx.strokeStyle=g3; ctx.lineWidth=6; ctx.globalAlpha=0.9; ctx.beginPath(); ctx.arc(0,0, state.rShield, -pw/2, pw/2); ctx.stroke(); ctx.globalAlpha=1; ctx.restore();
+  // threats
+  for(const th of state.threats){ ctx.save(); ctx.rotate(th.angle); ctx.fillStyle=th.color; ctx.shadowColor=th.color; ctx.shadowBlur=(th.special?30:16); const r=th.r; const sz=(th.special?14:(th.type==='fast'?9:(th.type==='mine'?12:10))); ctx.beginPath(); ctx.arc(r,0,sz,0,TAU); ctx.fill(); ctx.strokeStyle=th.color; ctx.lineWidth=2; ctx.globalAlpha=0.7; ctx.beginPath(); ctx.moveTo(r,0); ctx.lineTo(r + (th.deflected? 28: -28), 0); ctx.stroke(); ctx.globalAlpha=1; ctx.restore(); }
+  // particles
+  for(const p of state.particles){ const t=1-(p.age/p.life); ctx.fillStyle=p.color; ctx.globalAlpha=Math.max(0,t); ctx.shadowColor=p.color; ctx.shadowBlur=18*t; ctx.beginPath(); ctx.arc(p.x-state.center.x,p.y-state.center.y,2+2*t,0,TAU); ctx.fill(); }
+  ctx.shadowBlur=0; ctx.globalAlpha=1; ctx.restore(); stageEl.textContent=state.stage; }
 
-  // ===== Colisões, Parry perfeito =====
-  function onDeflect(th, perfect=false){ th.deflected=true; th.vr=Math.abs(th.vr)*(th.type==='fast'?1.1:1); const x=state.center.x+Math.cos(th.angle)*state.rShield; const y=state.center.y+Math.sin(th.angle)*state.rShield; addParticles(x,y, th.special?'#ffd166':th.color, th.special?36:18); beep(th.special? 'power': (perfect? 'perfect':'ping'), th.special?0.04:(perfect?0.035:0.02)); const gain=10+Math.floor(state.difficulty*0.6); state.combo=Math.min(50, state.combo+1); const mult=1+Math.floor(state.combo/8); let scoreAdd=(th.special?50:gain)*mult; if(state.t <= state.scoreMultTempUntil) scoreAdd=Math.floor(scoreAdd*1.2); state.score += scoreAdd; scoreEl.textContent=state.score; document.getElementById('mult').textContent='x'+mult; // bits
-    let bitsAdd = th.special? 4: 1; if(perfect) bitsAdd += 2; state.bits += bitsAdd; bitsEl.textContent=state.bits; if(th.special) applyPower(); }
+// Toast
+let toastTimer=null; function showToast(msg,dur=1200){ toastEl.textContent=msg; toastEl.classList.add('show'); if(toastTimer) clearTimeout(toastTimer); toastTimer=setTimeout(()=>toastEl.classList.remove('show'), dur); }
 
-  function hitCore(){ if(state.grace>0){ state.grace--; showToast('🛡️ Graça consumida'); return; } beep('hit',0.03); state.lives--; state.combo=0; showToast('❌ Você levou dano', 900); if(state.lives<=0){ gameOver(); } }
+// HiDPI resize
+function resizeCanvas(){ const ratio=Math.min(3, window.devicePixelRatio||1); const size=Math.min(window.innerWidth-360, window.innerHeight-220); const px=Math.max(420,size); cvs.width=Math.floor(px*ratio); cvs.height=Math.floor(px*ratio); state.width=cvs.width; state.height=cvs.height; state.center={x:cvs.width/2,y:cvs.height/2}; state.rBase=Math.min(cvs.width,cvs.height)/2*0.68; state.rShield=Math.min(cvs.width,cvs.height)/2*0.36; state.rCore=Math.min(cvs.width,cvs.height)/2*0.09; }
+window.addEventListener('resize', resizeCanvas); resizeCanvas();
 
-  function applyPower(){ const u=state.upgrades; const roll=Math.random(); if(roll<0.4){ const base=2200; const extra=(u.timelens||0)*500; state.timeScale=0.45; showToast('⏳ Lente de tempo', 700); setTimeout(()=>state.timeScale=1, (base+extra)); } else if(roll<0.8){ const target = TAU*0.07*(1+0.06*(u.width||0)); state.shieldTargetWidth = target*1.6; showToast('🛡️ Escudo amplo', 700); setTimeout(()=>state.shieldTargetWidth = target, 2600); } else { state.lives = Math.min(8, state.lives+1); showToast('💚 Vida extra', 900); livesEl.textContent=state.lives; } }
-
-  // ===== Update =====
-  function update(dt){ if(!state.running||state.paused) return;
-    state.difficulty += dt; state.spawnInterval = clamp(0.85 - state.difficulty*0.015, 0.30, 0.85); state.stage = 1 + Math.floor(state.difficulty/20);
-
-    // Ofertas de loja a cada 2 fases
-    if(state.stage >= state.nextShopStage){ state.nextShopStage += 2; maybeRefreshShop(); }
-
-    // Boss a cada 5 fases
-    if(!state.bossActive && state.stage>1 && state.stage%5===0){ spawnBoss(); }
-    updateBoss(dt);
-
-    // Efeitos temporários
-    state.timeScale = (state.t <= state.slowUntil)? 0.7 : 1;
-
-    // Entradas
-    if(state.inputs.mouseAngle!=null){ let target = state.inputs.mouseAngle; if(state.t <= state.autoAimUntil && state.threats.length){ // auto-aim: leve atração ao ameaças próximas ao escudo
-        const near = state.threats.reduce((p,c)=> (c.vr<0 && !c.deflected && c.r>state.rShield-80 && c.r<state.rShield+140 && Math.abs(angleDiff(c.angle,state.shieldAngle))<Math.PI/3 && (!p || c.r<p.r))? c : p, null);
-        if(near) target = near.angle; }
-      let diff=angleDiff(target,state.shieldAngle); state.shieldAngle=angleNorm(state.shieldAngle + diff*clamp(dt*7,0,0.25)); }
-    if(state.inputs.left) state.shieldAngle=angleNorm(state.shieldAngle - state.shieldSpeed*dt);
-    if(state.inputs.right)state.shieldAngle=angleNorm(state.shieldAngle + state.shieldSpeed*dt);
-
-    // Largura interpola (se boost temporário acabou, converge ao alvo base)
-    const baseTarget = TAU*0.07 * (1+0.06*(state.upgrades.width||0)); if(state.t > state.widthBoostUntil) state.shieldTargetWidth = baseTarget; state.shieldWidth = lerp(state.shieldWidth, state.shieldTargetWidth, 1-Math.exp(-dt*7));
-
-    // Spawns
-    state.spawnTimer -= dt; if(state.spawnTimer<=0 && !state.bossActive){ state.spawnTimer += state.spawnInterval*(0.6+Math.random()*0.8); spawnThreat(); }
-
-    // Ameaças
-    const toRemove=[]; for(const th of state.threats){ if(th.type==='snake'){ th.wigA += (th.wigF||2)*dt; th.angle = angleNorm(th.angle + Math.sin(th.wigA)*0.003); }
-      th.r += th.vr*dt*state.timeScale; const nearShield = (th.vr<0 && th.r <= state.rShield+12 && th.r >= state.rShield-18) || (th.vr>0 && th.r>= state.rShield-18 && th.r<= state.rShield+20);
-      if(nearShield && !th.deflected && th.alive){ const diff=Math.abs(angleDiff(th.angle,state.shieldAngle)); if(diff<=state.shieldWidth*0.5){ const perfect = (diff <= state.shieldWidth*0.15); if(perfect){ showToast('✨ Parry perfeito!'); } onDeflect(th, perfect); } }
-      if(th.r <= state.rCore && th.alive && !th.deflected){ th.alive=false; addParticles(state.center.x,state.center.y,'#ff3b58',60); hitCore(); livesEl.textContent=state.lives; if(state.lives<=0) toRemove.push(th); }
-      if(th.r >= state.rBase*1.02 || th.r < 2){ toRemove.push(th); }
-    }
-    if(toRemove.length){ state.threats = state.threats.filter(x=>!toRemove.includes(x)); }
-
-    // Partículas
-    for(const p of state.particles){ p.age += dt*state.timeScale; p.x += p.vx*dt; p.y += p.vy*dt; const damp = state.reduceMotion?0.995:0.992; p.vx*=damp; p.vy*=damp; } state.particles = state.particles.filter(p=>p.age<p.life);
-
-    // Nova cooldown
-    if(state.novaCooldown>0){ state.novaCooldown -= dt; if(state.novaCooldown<=0){ state.novaCooldown=0; showToast('⚡ Nova pronta'); } updateNovaUI(); }
-  }
-
-  // ===== Render =====
-  let last=performance.now(), accFPS=0, frames=0; function loop(now){ const rawdt=Math.min(0.05,(now-last)/1000); last=now; state.dt=rawdt; state.t+=rawdt; update(rawdt); draw(); frames++; accFPS+=1/rawdt; if(frames>=20){ fpsEl.textContent='FPS: '+Math.round(accFPS/frames); frames=0; accFPS=0; } requestAnimationFrame(loop);} requestAnimationFrame(loop);
-
-  function draw(){ const w=cvs.width,h=cvs.height; ctx.clearRect(0,0,w,h); ctx.save(); ctx.translate(state.center.x,state.center.y);
-    // BG
-    const grad=ctx.createRadialGradient(0,0,state.rCore*0.2,0,0,state.rBase); grad.addColorStop(0,'rgba(0,247,255,.05)'); grad.addColorStop(1,'rgba(122,92,255,.03)'); ctx.fillStyle=grad; ctx.beginPath(); ctx.arc(0,0,state.rBase,0,TAU); ctx.fill();
-    // anéis
-    ctx.globalCompositeOperation='lighter'; ctx.strokeStyle='rgba(0,247,255,.1)'; ctx.lineWidth=2; ctx.shadowColor='rgba(0,247,255,.35)'; ctx.shadowBlur=8; for(let i=0;i<3;i++){ ctx.beginPath(); ctx.arc(0,0, state.rShield + (i-1)*24, 0, TAU); ctx.stroke(); } ctx.shadowBlur=0; ctx.globalCompositeOperation='source-over';
-    // núcleo
-    const corePulse = 1 + Math.sin(state.t*3)*0.04; ctx.fillStyle='#00f7ff'; ctx.shadowColor='#00f7ff'; ctx.shadowBlur=30; ctx.beginPath(); ctx.arc(0,0, state.rCore*corePulse, 0, TAU); ctx.fill(); ctx.shadowBlur=0;
-    // boss
-    if(state.bossActive && state.boss){ const b=state.boss; ctx.save(); ctx.rotate(b.angle); ctx.strokeStyle=b.color; ctx.lineWidth=10; ctx.globalAlpha=0.8; ctx.beginPath(); ctx.arc(0,0,b.r, -0.4, 0.4); ctx.stroke(); ctx.globalAlpha=1; ctx.fillStyle=b.color; ctx.font='bold 22px system-ui'; ctx.textAlign='center'; ctx.fillText('BOSS '+b.hp, Math.cos(0)*b.r, Math.sin(0)*b.r - 18); ctx.restore(); }
-    // escudo
-    const aw=state.shieldWidth; ctx.save(); ctx.rotate(state.shieldAngle); const grad2=ctx.createLinearGradient(state.rShield-aw*0, -8, state.rShield+aw*0, 8); grad2.addColorStop(0,'#7a5cff'); grad2.addColorStop(1,'#00f7ff'); ctx.strokeStyle=grad2; ctx.lineWidth=16; ctx.lineCap='round'; ctx.shadowColor='#7a5cff'; ctx.shadowBlur=20; ctx.beginPath(); ctx.arc(0,0, state.rShield, -aw/2, aw/2); ctx.stroke(); ctx.restore();
-    // ameaças
-    for(const th of state.threats){ ctx.save(); ctx.rotate(th.angle); ctx.fillStyle=th.color; ctx.shadowColor=th.color; ctx.shadowBlur=(th.special?30:16); const r=th.r; const sz=(th.special?14:(th.type==='fast'?9:10)); ctx.beginPath(); ctx.arc(r,0,sz,0,TAU); ctx.fill(); ctx.strokeStyle=th.color; ctx.lineWidth=2; ctx.globalAlpha=0.7; ctx.beginPath(); ctx.moveTo(r,0); ctx.lineTo(r + (th.deflected? 28: -28), 0); ctx.stroke(); ctx.globalAlpha=1; ctx.restore(); }
-    // partículas
-    for(const p of state.particles){ const t=1-(p.age/p.life); ctx.fillStyle=p.color; ctx.globalAlpha=Math.max(0,t); ctx.shadowColor=p.color; ctx.shadowBlur=18*t; ctx.beginPath(); ctx.arc(p.x-state.center.x,p.y-state.center.y,2+2*t,0,TAU); ctx.fill(); }
-    ctx.shadowBlur=0; ctx.globalAlpha=1; ctx.restore(); stageEl.textContent=state.stage; }
-
-  // ===== UI util =====
-  let toastTimer=null; function showToast(msg,dur=1200){ toastEl.textContent=msg; toastEl.classList.add('show'); if(toastTimer) clearTimeout(toastTimer); toastTimer=setTimeout(()=>toastEl.classList.remove('show'), dur); }
-  function saveScreenshot(){ const a=document.createElement('a'); a.download='orbital-screenshot.png'; a.href=cvs.toDataURL('image/png'); a.click(); showToast('📸 Screenshot salva'); }
-
-  // HiDPI & layout
-  function resizeCanvas(){ const ratio=Math.min(3, window.devicePixelRatio||1); const size=Math.min(window.innerWidth-360, window.innerHeight-200); const px=Math.max(420,size); cvs.width=Math.floor(px*ratio); cvs.height=Math.floor(px*ratio); state.width=cvs.width; state.height=cvs.height; state.center={x:cvs.width/2,y:cvs.height/2}; state.rBase=Math.min(cvs.width,cvs.height)/2*0.68; state.rShield=Math.min(cvs.width,cvs.height)/2*0.36; state.rCore=Math.min(cvs.width,cvs.height)/2*0.09; }
-  window.addEventListener('resize', resizeCanvas); resizeCanvas();
-
-  // Inicializações
-  helpCard.style.display = state.helpCollapsed? 'none':'block';
-  volumeSlider.addEventListener('input', ()=>{ state.volume=Number(volumeSlider.value); localStorage.setItem(VOL_KEY, String(state.volume)); });
-  reduceMotionChk.addEventListener('change', ()=>{ state.reduceMotion=reduceMotionChk.checked; });
-  window.addEventListener('blur', ()=>{ if(state.running&&!state.paused) togglePause(); });
-
-  // ===== Ajustes extra =====
-  // Converter deflects em dano no boss: cada parry perfeito reduz 3 HP, deflect normal reduz 1 HP
-  const _onDeflect = onDeflect; onDeflect = function(th, perfect=false){ _onDeflect(th, perfect); if(state.bossActive && state.boss){ state.boss.hp -= (perfect?3:1); if(state.boss.hp<0) state.boss.hp=0; } };
-
-  </script>
+// Inicial
+applyUpgradesToStats(); livesEl.textContent=state.lives; cellsEl.textContent=state.cells; bestEl.textContent=state.best; statusEl.textContent='Menu';
+function openPreRun(){ mainMenu.classList.remove('open'); preRun.classList.add('open'); qsa('input[name="diff"]').forEach(r=>r.checked=(r.value===prefs.defaultDiff)); }
+</script>
 </body>
 </html>

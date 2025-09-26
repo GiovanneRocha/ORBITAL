@@ -1,13 +1,22 @@
-# ORBITAL v4 — Loja in-run, Bosses e Parry Perfeito
+# ORBITAL v7.1 — Melhorias gerais (Loja, Start, Menu)
 
-## Novidades
-- **Loja in-run (🛒, tecla S)** — gaste **bits** (moeda da rodada) em **micro-melhorias temporárias**: Escudo++, Pontuação+, Lente rápida, Auto-aim, Vida +1, Recarga NOVA, Graça.
-- **Bosses (👾)** — a cada 5 fases surge um chefe que dispara leques de projéteis; vencer dá **+40 bits** e renova ofertas da loja.
-- **Parry perfeito (✨)** — defletir bem no centro do arco dá mais **pontos** e **bits**, e causa **mais dano no boss**.
-- **Meta de longo prazo** — no fim da partida, converta pontuação em **células** para upgrades **persistentes** no **Laboratório (🧪)**.
+## Novidades desta build
+- **Menu Principal** (overlay): Acesso a Jogar, Laboratório, Configurações e Créditos.
+- **Pré‑Partida**: seleção de dificuldade (Casual, Clássico, Extremo) com efeitos em vida, ritmo de spawn, pontos e bits.
+- **Menu de Pausa** (Esc/P): Retomar, Loja, Lab, Configurações, Recomeçar, Menu Principal.
+- **Loja aprimorada**:
+  - **Tiers** por fase + **pesos de raridade** escalam com Nível (Lifetime).
+  - **Fichas de Rerrol**: ganhas ao derrotar boss; consumidas antes dos bits.
+  - **Confirmação de compra** (opcional em Configurações), Lock por slot, custo de Rerrol progressivo.
+- **Configurações**: Volume, Reduzir movimento, Confirmar compras, Pausa automática ao trocar de aba, reset de progresso.
+- **Qualidade de vida**: Toaster consistente, badges de Tier/Nível/Recorde no HUD e Menu, PWA mantido.
 
-## Controles
-- **Espaço** inicia • **P** pausa • **M** mudo • **K** screenshot
-- **S** Loja • **Shift** NOVA • **←/→** ou **A/D** giro fino • Mouse/Toque mira
+## Como rodar
+1. Servir a pasta em **localhost** (PWA/Service Worker exigem HTTPS/localhost):
+   - VS Code Live Server, `npx serve`, `python -m http.server 5500`, etc.
+2. Abrir `http://localhost:PORT/index.html` e, se quiser, instalar como **PWA**.
+3. No Menu: **Jogar** → escolha a dificuldade no **Pré‑Partida** → Iniciar.
 
-Abra `index.html` no navegador.
+## Persistência (localStorage)
+- `orbital_lifetime_v7_1` (Lifetime Pontos), `orbital_upgrades_v7_1` (upgrades), `orbital_cells_v7_1` (células), `orbital_highscore` (recorde), `orbital_prefs_v7_1` (preferências).
+
