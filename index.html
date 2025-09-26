@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>ORBITAL — Shield the Core (v2)</title>
+  <meta name="description" content="Arcade minimalista em Canvas: proteja o núcleo com um escudo giratório. Desktop e mobile. v2 com painel lateral de ajuda e correções." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3CradialGradient id='g' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop stop-color='%2300f7ff'/%3E%3Cstop offset='1' stop-color='%23005494'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='48' fill='url(%23g)'/%3E%3Cpath d='M50 12 A38 38 0 0 1 50 88' stroke='%23fff' stroke-width='8' stroke-linecap='round' fill='none'/%3E%3C/svg%3E" />
+  <style>
+    :root{
+      --bg:#05060a;        /* Fundo geral */
+      --fg:#cfe9ff;        /* Texto */
+      --neon1:#00f7ff;     /* Ciano neon */
+      --neon2:#7a5cff;     /* Roxo neon */
+      --danger:#ff3b58;    /* Vermelho de dano */
+      --gold:#ffd166;      /* Super bônus */
+      --muted:#9bb4c7;
+      --panel:#0b1222a6;   /* Painéis translucidos */
+      --border:rgba(255,255,255,.08);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:radial-gradient(1200px 800px at 50% 40%, #0b1020 0%, var(--bg) 55%, #030409 100%);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Noto Sans",sans-serif}
+    #wrap{position:fixed;inset:0;display:grid;grid-template-rows:auto 1fr auto;min-height:100%}
+    header,footer{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;gap:12px;backdrop-filter:saturate(140%) blur(6px);background:linear-gradient( to bottom, rgba(10,14,24,.55), rgba(10,14,24,.25) );border-bottom:1px solid var(--border)}
+    footer{border-top:1px solid var(--border);border-bottom:none}
+    header h1{font-size:16px;margin:0;letter-spacing:.1em;font-weight:700}
+    header .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.03);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03)}
+    button, .btn{appearance:none;border:none;padding:8px 12px;border-radius:10px;background:linear-gradient(135deg, rgba(122,92,255,.25), rgba(0,247,255,.15));color:var(--fg);cursor:pointer;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border)}
+    button:hover{filter:brightness(1.1)}
+    button:active{transform:translateY(1px)}
+
+    /* Área principal em 2 colunas (canvas + ajuda) */
+    #main{display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:stretch;padding:12px;overflow:auto}
+    /* Em telas estreitas vira coluna única e a ajuda vira painel deslizante */
+    @media (max-width:1000px){ #main{grid-template-columns:1fr} }
+
+    #game{width:100%;height:100%;display:grid;place-items:center}
+    canvas{width:min(100%,100vh - 180px);height:min(100vw,100vh - 180px);max-width:100%;max-height:100%;background:radial-gradient( 800px 800px at 50% 50%, rgba(122,92,255,.06), rgba(0,247,255,.03) 40%, transparent 70% );border-radius:22px;box-shadow:0 0 0 1px var(--border), 0 20px 80px rgba(0,0,0,.4), inset 0 0 60px rgba(0,247,255,.06)}
+
+    /* HUD topo */
+    #hud{position:fixed;top:60px;left:0;right:0;display:flex;justify-content:center;pointer-events:none}
+    #hud .panel{pointer-events:auto;display:flex;gap:14px;align-items:center;padding:8px 12px;border-radius:12px;background:var(--panel);border:1px solid var(--border);backdrop-filter:blur(6px)}
+    #hud .stat{min-width:120px}
+    #hud .stat b{font-size:18px}
+
+    /* Ajuda lateral */
+    aside#help{position:relative}
+    #help .card{position:sticky;top:12px;max-height:calc(100vh - 160px);overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 10px 50px rgba(0,0,0,.35);backdrop-filter: blur(6px)}
+    .card h2{margin:0 0 10px;font-size:18px}
+    .kbd{font: 600 12px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; border:1px solid rgba(255,255,255,.2);padding:2px 6px;border-radius:6px;background:rgba(255,255,255,.06)}
+    .hint{color:var(--muted);font-size:13px}
+
+    /* Painel móvel deslizante */
+    #helpDrawer{position:fixed;inset:auto 0 0 0;background:var(--panel);border-top:1px solid var(--border);border-radius:16px 16px 0 0;transform:translateY(110%);transition:transform .25s ease;backdrop-filter: blur(6px);padding:12px;z-index:10}
+    #helpDrawer.open{transform:translateY(0)}
+    #helpDrawer .drag{width:44px;height:5px;background:rgba(255,255,255,.2);border-radius:99px;margin:4px auto 10px}
+    @media (min-width:1001px){ #helpDrawer{display:none} }
+
+    #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:rgba(12,16,28,.85);border:1px solid rgba(255,255,255,.1);padding:8px 12px;border-radius:10px;opacity:0;transition:opacity .25s ease;z-index:20}
+    #toast.show{opacity:1}
+
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .row.stretch{justify-content:space-between}
+    .inline{display:inline-flex;gap:8px;align-items:center}
+
+    @media (max-width:600px){ header h1{display:none} #hud .stat{min-width:auto} }
+  </style>
+</head>
+<body>
+  <div id="wrap">
+    <header>
+      <h1>ORBITAL — Shield the Core <small style="opacity:.6">v2</small></h1>
+      <div class="pill">
+        <span id="status">Pronto</span>
+        <span style="opacity:.5">•</span>
+        <span id="fps">FPS: —</span>
+      </div>
+      <div class="row">
+        <button id="btnStart">▶ Jogar</button>
+        <button id="btnPause" title="P">⏸ Pausar</button>
+        <button id="btnScreenshot" title="K">📸 Screenshot</button>
+        <button id="btnMute" title="M">🔊 Som</button>
+        <button id="btnHelp">❔ Ajuda</button>
+        <button id="btnSettings" title="Configurações">⚙️</button>
+      </div>
+    </header>
+
+    <div id="hud">
+      <div class="panel">
+        <div class="stat">Pontuação: <b id="score">0</b> <small id="mult" class="hint">x1</small></div>
+        <div class="stat">Recorde: <b id="best">0</b></div>
+        <div class="stat">Vidas: <b id="lives">3</b></div>
+        <div class="stat">Fase: <b id="stage">1</b></div>
+      </div>
+    </div>
+
+    <main id="main">
+      <section id="game" aria-label="Campo de jogo">
+        <canvas id="cvs" width="1024" height="1024"></canvas>
+      </section>
+
+      <aside id="help" aria-label="Ajuda e dicas">
+        <div class="card" id="helpCard">
+          <div class="row stretch">
+            <h2>Ajuda & Dicas</h2>
+            <button id="btnCollapseHelp" class="btn" title="Recolher">↔️</button>
+          </div>
+          <p>Gire o escudo circular para desviar as ameaças que vêm de fora para o centro. Cada desvio conta pontos e aumenta o multiplicador. Deixou passar, perde uma vida.</p>
+          <ul>
+            <li><b>Controles:</b> mouse/toque para mirar; teclas <span class="kbd">←/→</span> ou <span class="kbd">A/D</span> para giro fino; <span class="kbd">Espaço</span> começa; <span class="kbd">P</span> pausa; <span class="kbd">K</span> screenshot.</li>
+            <li><b>Poderes:</b> itens <span style="color:var(--gold)">dourados</span> ativam <i>lente de tempo</i>, <i>escudo amplo</i> ou <i>vida extra</i>.</li>
+            <li><b>Dica:</b> mantenha o arco levemente à frente da ameaça para garantir o desvio.</li>
+          </ul>
+          <hr style="border-color:var(--border);opacity:.6" />
+          <div class="row">
+            <div class="inline"><label for="volume">🔊 Volume</label><input id="volume" type="range" min="0" max="1" step="0.01" value="0.7"/></div>
+            <label class="inline"><input type="checkbox" id="reduceMotion"/> Reduzir movimento</label>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <footer>
+      <div class="hint">Desktop: <span class="kbd">Mouse</span> gira o escudo • <span class="kbd">←/→</span> ou <span class="kbd">A/D</span> • <span class="kbd">Espaço</span> inicia • <span class="kbd">P</span> pausa • <span class="kbd">M</span> mudo</div>
+      <div class="hint">Mobile: toque e arraste para girar</div>
+    </footer>
+  </div>
+
+  <!-- Painel móvel (aparece apenas em telas estreitas) -->
+  <div id="helpDrawer" role="dialog" aria-label="Ajuda">
+    <div class="drag"></div>
+    <div class="row stretch" style="margin-bottom:8px">
+      <strong>Ajuda rápida</strong>
+      <button id="btnCloseDrawer" class="btn">Fechar</button>
+    </div>
+    <div class="hint">Arraste para baixo ou toque em Fechar para ocultar</div>
+    <ul>
+      <li><b>Começar:</b> <span class="kbd">Espaço</span> • <b>Pausar:</b> <span class="kbd">P</span></li>
+      <li><b>Mirar:</b> arraste ou mova o mouse; <b>Fino:</b> <span class="kbd">←/→</span> / <span class="kbd">A/D</span></li>
+      <li><b>Screenshot:</b> <span class="kbd">K</span></li>
+    </ul>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+  // =====================
+  // ORBITAL v2 — melhorias de UX e correções
+  // =====================
+  const TAU = Math.PI * 2;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const lerp = (a,b,t)=>a+(b-a)*t;
+  const angleNorm = (a)=>{ a%=TAU; if(a<0) a+=TAU; return a; }
+  const angleDiff = (a,b)=>{ let d = (a-b+Math.PI)%(TAU)-Math.PI; return d< -Math.PI? d+TAU: d; }
+
+  // UI refs
+  const cvs = document.getElementById('cvs');
+  const ctx = cvs.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const bestEl = document.getElementById('best');
+  const livesEl = document.getElementById('lives');
+  const stageEl = document.getElementById('stage');
+  const fpsEl = document.getElementById('fps');
+  const statusEl = document.getElementById('status');
+  const toastEl = document.getElementById('toast');
+
+  const btnStart = document.getElementById('btnStart');
+  const btnPause = document.getElementById('btnPause');
+  const btnHelp = document.getElementById('btnHelp');
+  const btnSettings = document.getElementById('btnSettings');
+  const btnScreenshot = document.getElementById('btnScreenshot');
+  const btnMute = document.getElementById('btnMute');
+  const btnCollapseHelp = document.getElementById('btnCollapseHelp');
+  const helpCard = document.getElementById('helpCard');
+  const volumeSlider = document.getElementById('volume');
+  const reduceMotionChk = document.getElementById('reduceMotion');
+
+  const helpDrawer = document.getElementById('helpDrawer');
+  const btnCloseDrawer = document.getElementById('btnCloseDrawer');
+
+  const state = {
+    running:false, paused:false, gameOver:false,
+    t:0, dt:0, timeScale:1,
+    width:cvs.width, height:cvs.height,
+    center:{x:cvs.width/2, y:cvs.height/2},
+    rBase:Math.min(cvs.width,cvs.height)/2 * 0.68,
+    rShield:Math.min(cvs.width,cvs.height)/2 * 0.36,
+    rCore:Math.min(cvs.width,cvs.height)/2 * 0.09,
+    shieldAngle:0,
+    shieldWidth:TAU*0.07, shieldTargetWidth:TAU*0.07,
+    shieldSpeed:2.6,
+    inputs:{left:false,right:false,mouseAngle:null},
+    threats:[], particles:[],
+    score:0, best: Number(localStorage.getItem('orbital_highscore')||0),
+    combo:0, lives:3, stage:1,
+    spawnTimer:0, spawnInterval:0.8, difficulty:0,
+    reduceMotion:false,
+    audioEnabled:true, muted:false, volume:Number(localStorage.getItem('orbital_volume')||0.7),
+    helpCollapsed: localStorage.getItem('orbital_helpCollapsed')==='1',
+  };
+  bestEl.textContent = state.best;
+  volumeSlider.value = String(state.volume);
+  reduceMotionChk.checked = state.reduceMotion;
+
+  // ====== Áudio via WebAudio ======
+  let audioCtx = null;
+  function ensureAudio(){ if(!state.audioEnabled) return; if(!audioCtx){ const AC = window.AudioContext || window.webkitAudioContext; audioCtx = AC? new AC(): null; } }
+  function beep(type='ping', baseGain=0.02){
+    if(state.muted) return; ensureAudio(); if(!audioCtx) return;
+    const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.type='sine';
+    const now = audioCtx.currentTime;
+    if(type==='ping'){ o.frequency.setValueAtTime(880, now); o.frequency.exponentialRampToValueAtTime(2200, now+0.06); }
+    else if(type==='hit'){ o.frequency.setValueAtTime(220, now); o.frequency.exponentialRampToValueAtTime(70, now+0.12); }
+    else if(type==='power'){ o.frequency.setValueAtTime(330, now); o.frequency.exponentialRampToValueAtTime(1320, now+0.2); }
+    const gain = Math.max(0.0001, baseGain * state.volume);
+    g.gain.setValueAtTime(gain, now); g.gain.exponentialRampToValueAtTime(0.0001, now+0.25);
+    o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(now+0.28);
+  }
+
+  // ====== Entradas ======
+  function updateMouseAngle(clientX, clientY){
+    const rect = cvs.getBoundingClientRect();
+    const x = (clientX - rect.left) * (cvs.width/rect.width);
+    const y = (clientY - rect.top) * (cvs.height/rect.height);
+    const dx = x - state.center.x; const dy = y - state.center.y;
+    state.inputs.mouseAngle = Math.atan2(dy, dx);
+  }
+  cvs.addEventListener('mousemove', e=>updateMouseAngle(e.clientX,e.clientY));
+  cvs.addEventListener('touchstart', e=>{ const t=e.touches[0]; updateMouseAngle(t.clientX,t.clientY); });
+  cvs.addEventListener('touchmove',  e=>{ const t=e.touches[0]; updateMouseAngle(t.clientX,t.clientY); });
+
+  window.addEventListener('keydown', e=>{
+    if(e.code==='ArrowLeft' || e.code==='KeyA') state.inputs.left = true;
+    if(e.code==='ArrowRight'|| e.code==='KeyD') state.inputs.right = true;
+    if(e.code==='Space'){ if(!state.running||state.gameOver){ startGame(); } }
+    if(e.code==='KeyP'){ togglePause(); }
+    if(e.code==='KeyM'){ toggleMute(); }
+    if(e.code==='KeyH'){ toggleHelp(); }
+    if(e.code==='KeyK'){ saveScreenshot(); }
+  });
+  window.addEventListener('keyup', e=>{
+    if(e.code==='ArrowLeft' || e.code==='KeyA') state.inputs.left = false;
+    if(e.code==='ArrowRight'|| e.code==='KeyD') state.inputs.right = false;
+  });
+
+  // ====== Entidades ======
+  function spawnThreat(){
+    const angle = Math.random()*TAU;
+    const speed = 70 + 10*state.difficulty + Math.random()*25; // px/s
+    const special = Math.random() < Math.min(0.05 + state.difficulty*0.002, 0.18);
+    state.threats.push({ angle, r: state.rBase*0.98, vr: -speed, alive:true, deflected:false, color: special? '#ffd166' : '#7a5cff', special });
+  }
+  function addParticles(x,y,color,count=18,spread=TAU){
+    for(let i=0;i<count;i++){
+      const a = Math.random()*spread; const v = 60 + Math.random()*220;
+      state.particles.push({x,y, vx:Math.cos(a)*v, vy:Math.sin(a)*v, life:0.6+Math.random()*0.4, age:0, color});
+    }
+  }
+
+  // ====== Lógica ======
+  function startGame(){
+    state.running = true; state.paused=false; state.gameOver=false;
+    state.t=0; state.dt=0; state.timeScale=1;
+    state.shieldAngle = 0; state.shieldWidth = TAU*0.07; state.shieldTargetWidth=state.shieldWidth;
+    state.threats.length=0; state.particles.length=0;
+    state.score=0; state.combo=0; state.lives=3; state.stage=1; state.difficulty=0;
+    state.spawnInterval=0.8; state.spawnTimer=0;
+    statusEl.textContent = 'Jogando';
+    if(audioCtx && audioCtx.state==='suspended') audioCtx.resume();
+  }
+
+  function gameOver(){
+    state.running=false; state.gameOver=true; statusEl.textContent = 'Game Over';
+    showToast('Game Over • Pontos: '+state.score, 3000);
+    if(state.score>state.best){ state.best=state.score; localStorage.setItem('orbital_highscore', state.best); bestEl.textContent=state.best; showToast('🏆 Novo recorde!', 1800); }
+  }
+
+  function togglePause(){ if(!state.running) return; state.paused = !state.paused; statusEl.textContent = state.paused? 'Pausado' : 'Jogando'; }
+  function toggleHelp(){
+    // Desktop: recolhe/expande card lateral
+    if(window.matchMedia('(min-width:1001px)').matches){
+      state.helpCollapsed = !state.helpCollapsed;
+      applyHelpCollapsed();
+    } else {
+      // Mobile: abre/fecha drawer
+      helpDrawer.classList.toggle('open');
+    }
+    localStorage.setItem('orbital_helpCollapsed', state.helpCollapsed? '1':'0');
+  }
+  function applyHelpCollapsed(){ helpCard.style.display = state.helpCollapsed? 'none':'block'; }
+  btnCollapseHelp.addEventListener('click', ()=>{ state.helpCollapsed=!state.helpCollapsed; applyHelpCollapsed(); localStorage.setItem('orbital_helpCollapsed', state.helpCollapsed? '1':'0'); });
+
+  function toggleMute(){ state.muted = !state.muted; btnMute.textContent = state.muted? '🔇 Mudo' : '🔊 Som'; }
+
+  btnStart.onclick = startGame;
+  btnPause.onclick = togglePause;
+  btnHelp.onclick = ()=>toggleHelp();
+  btnSettings.onclick = ()=>toggleHelp();
+  btnScreenshot.onclick = ()=>saveScreenshot();
+  btnMute.onclick = ()=>toggleMute();
+  btnCloseDrawer.onclick = ()=>helpDrawer.classList.remove('open');
+
+  function hitCore(){ beep('hit', 0.03); state.lives--; state.combo=0; showToast('❌ Você levou dano', 900); if(state.lives<=0){ gameOver(); } }
+
+  function applyPower(){
+    const roll = Math.random();
+    if(roll < 0.4){ state.timeScale = 0.45; showToast('⏳ Lente de tempo', 700); setTimeout(()=>state.timeScale=1, 2200);
+    } else if(roll < 0.8){ state.shieldTargetWidth = TAU*0.13; showToast('🛡️ Escudo amplo', 700); setTimeout(()=>state.shieldTargetWidth=TAU*0.07, 2600);
+    } else { state.lives = Math.min(5, state.lives+1); showToast('💚 Vida extra', 900); }
+  }
+
+  function update(dt){
+    if(!state.running||state.paused) return;
+
+    // Dificuldade: FIX do clamp (valor, min, max)
+    state.difficulty += dt;
+    state.spawnInterval = clamp(0.85 - state.difficulty*0.015, 0.35, 0.85);
+    state.stage = 1 + Math.floor(state.difficulty/20);
+
+    // Entradas
+    if(state.inputs.mouseAngle!=null){
+      let diff = angleDiff(state.inputs.mouseAngle, state.shieldAngle);
+      state.shieldAngle = angleNorm(state.shieldAngle + diff*clamp( dt*7, 0, 0.25 ));
+    }
+    if(state.inputs.left)  state.shieldAngle = angleNorm(state.shieldAngle - state.shieldSpeed*dt);
+    if(state.inputs.right) state.shieldAngle = angleNorm(state.shieldAngle + state.shieldSpeed*dt);
+
+    // Largura do escudo
+    state.shieldWidth = lerp(state.shieldWidth, state.shieldTargetWidth, 1 - Math.exp(-dt*7));
+
+    // Spawns
+    state.spawnTimer -= dt;
+    if(state.spawnTimer<=0){ state.spawnTimer += state.spawnInterval*(0.6+Math.random()*0.8); spawnThreat(); }
+
+    // Ameaças
+    const toRemove=[];
+    for(const th of state.threats){
+      th.r += th.vr * dt * state.timeScale;
+      const nearShield = (th.vr<0 && th.r <= state.rShield+12 && th.r >= state.rShield-18) || (th.vr>0 && th.r>= state.rShield-18 && th.r<= state.rShield+20);
+      if(nearShield && !th.deflected && th.alive){
+        const diff = Math.abs(angleDiff(th.angle, state.shieldAngle));
+        if(diff <= state.shieldWidth*0.5){
+          th.deflected = true; th.vr = Math.abs(th.vr);
+          const x = state.center.x + Math.cos(th.angle)*state.rShield;
+          const y = state.center.y + Math.sin(th.angle)*state.rShield;
+          addParticles(x,y, th.special? '#ffd166' : '#7a5cff', th.special? 36:18);
+          beep(th.special? 'power':'ping', th.special? 0.04:0.02);
+          const gain = 10 + Math.floor(state.difficulty*0.6);
+          state.combo = Math.min(50, state.combo+1);
+          const mult = 1 + Math.floor(state.combo/8);
+          state.score += (th.special? 50:gain) * mult;
+          scoreEl.textContent = state.score; document.getElementById('mult').textContent = 'x'+mult;
+          if(th.special) applyPower();
+        }
+      }
+      if(th.r <= state.rCore && th.alive && !th.deflected){ th.alive=false; addParticles(state.center.x, state.center.y, '#ff3b58', 60); hitCore(); livesEl.textContent = state.lives; if(state.lives<=0) toRemove.push(th); }
+      if(th.r >= state.rBase*1.02 || th.r < 2){ toRemove.push(th); }
+    }
+    if(toRemove.length){ state.threats = state.threats.filter(x=>!toRemove.includes(x)); }
+
+    // Partículas
+    for(const p of state.particles){ p.age += dt * state.timeScale; p.x += p.vx*dt; p.y += p.vy*dt; const damp = state.reduceMotion? 0.995: 0.992; p.vx *= damp; p.vy *= damp; }
+    state.particles = state.particles.filter(p=>p.age<p.life);
+  }
+
+  // ====== Render ======
+  let last=performance.now(), accFPS=0, frames=0;
+  function loop(now){
+    const rawdt = Math.min(0.05, (now-last)/1000); last=now; state.dt = rawdt; state.t += rawdt;
+    update(rawdt); draw();
+    frames++; accFPS += 1/rawdt; if(frames>=20){ fpsEl.textContent = 'FPS: '+Math.round(accFPS/frames); frames=0; accFPS=0; }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  function draw(){
+    const w=cvs.width,h=cvs.height; ctx.clearRect(0,0,w,h);
+    ctx.save(); ctx.translate(state.center.x, state.center.y);
+
+    const grad = ctx.createRadialGradient(0,0, state.rCore*0.2, 0,0, state.rBase);
+    grad.addColorStop(0,'rgba(0,247,255,.05)'); grad.addColorStop(1,'rgba(122,92,255,.03)');
+    ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(0,0,state.rBase,0,TAU); ctx.fill();
+
+    ctx.globalCompositeOperation='lighter';
+    ctx.strokeStyle='rgba(0,247,255,.1)'; ctx.lineWidth=2; ctx.shadowColor='rgba(0,247,255,.35)'; ctx.shadowBlur=8;
+    for(let i=0;i<3;i++){ ctx.beginPath(); ctx.arc(0,0, state.rShield + (i-1)*24, 0, TAU); ctx.stroke(); }
+    ctx.shadowBlur=0; ctx.globalCompositeOperation='source-over';
+
+    ctx.save(); const corePulse = 1 + Math.sin(state.t*3)*0.04; ctx.fillStyle = '#00f7ff'; ctx.shadowColor='#00f7ff'; ctx.shadowBlur=30; ctx.beginPath(); ctx.arc(0,0, state.rCore*corePulse, 0, TAU); ctx.fill(); ctx.restore();
+
+    const aw = state.shieldWidth; ctx.save(); ctx.rotate(state.shieldAngle);
+    const grad2 = ctx.createLinearGradient(state.rShield-aw*0, -8, state.rShield+aw*0, 8);
+    grad2.addColorStop(0,'#7a5cff'); grad2.addColorStop(1,'#00f7ff'); ctx.strokeStyle = grad2; ctx.lineWidth = 16; ctx.lineCap='round'; ctx.shadowColor='#7a5cff'; ctx.shadowBlur=20;
+    ctx.beginPath(); ctx.arc(0,0, state.rShield, -aw/2, aw/2); ctx.stroke(); ctx.restore();
+
+    for(const th of state.threats){ ctx.save(); ctx.rotate(th.angle); ctx.fillStyle = th.color; ctx.shadowColor=th.color; ctx.shadowBlur = th.special? 30: 16; const r = th.r; const sz = th.special? 14: 10; ctx.beginPath(); ctx.arc(r, 0, sz, 0, TAU); ctx.fill(); ctx.strokeStyle = th.color; ctx.lineWidth=2; ctx.globalAlpha=0.7; ctx.beginPath(); ctx.moveTo(r,0); ctx.lineTo(r + (th.deflected? 28: -28), 0); ctx.stroke(); ctx.globalAlpha=1; ctx.restore(); }
+
+    for(const p of state.particles){ const t = 1 - (p.age/p.life); ctx.fillStyle = p.color; ctx.globalAlpha = Math.max(0, t); ctx.shadowColor = p.color; ctx.shadowBlur = 18*t; ctx.beginPath(); ctx.arc(p.x-state.center.x, p.y-state.center.y, 2+2*t, 0, TAU); ctx.fill(); }
+    ctx.shadowBlur=0; ctx.globalAlpha=1; ctx.restore();
+
+    stageEl.textContent = state.stage;
+  }
+
+  // ====== UI util ======
+  let toastTimer=null; function showToast(msg,dur=1200){ toastEl.textContent = msg; toastEl.classList.add('show'); if(toastTimer) clearTimeout(toastTimer); toastTimer = setTimeout(()=>toastEl.classList.remove('show'), dur); }
+  function saveScreenshot(){ const a = document.createElement('a'); a.download = 'orbital-screenshot.png'; a.href = cvs.toDataURL('image/png'); a.click(); showToast('📸 Screenshot salva'); }
+
+  // Ajuste HiDPI
+  function resizeCanvas(){
+    const ratio = Math.min(3, window.devicePixelRatio||1);
+    const size = Math.min(window.innerWidth - 360, window.innerHeight - 200); // reserva p/ painel
+    const px = Math.max(420, size);
+    cvs.width = Math.floor(px*ratio); cvs.height= Math.floor(px*ratio);
+    state.width=cvs.width; state.height=cvs.height; state.center={x:cvs.width/2,y:cvs.height/2};
+    state.rBase=Math.min(cvs.width,cvs.height)/2 * 0.68; state.rShield=Math.min(cvs.width,cvs.height)/2 * 0.36; state.rCore=Math.min(cvs.width,cvs.height)/2 * 0.09;
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  // Estado inicial do painel de ajuda
+  applyHelpCollapsed();
+
+  // Volume & movimento
+  volumeSlider.addEventListener('input', ()=>{ state.volume = Number(volumeSlider.value); localStorage.setItem('orbital_volume', String(state.volume)); });
+  reduceMotionChk.addEventListener('change', ()=>{ state.reduceMotion = reduceMotionChk.checked; });
+
+  // Pausa automática ao perder foco
+  window.addEventListener('blur', ()=>{ if(state.running&&!state.paused) togglePause(); });
+
+  // No v2 removemos overlay intrusivo; o painel lateral não bloqueia interação.
+  </script>
+</body>
+</html>
