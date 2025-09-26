@@ -3,20 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <title>ORBITAL — Shield the Core (v2)</title>
-  <meta name="description" content="Arcade minimalista em Canvas: proteja o núcleo com um escudo giratório. Desktop e mobile. v2 com painel lateral de ajuda e correções." />
+  <title>ORBITAL — Shield the Core (v4)</title>
+  <meta name="description" content="Arcade Canvas. v4: loja in-run (bits), bosses e parry perfeito + upgrades persistentes (células)." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3CradialGradient id='g' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop stop-color='%2300f7ff'/%3E%3Cstop offset='1' stop-color='%23005494'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='48' fill='url(%23g)'/%3E%3Cpath d='M50 12 A38 38 0 0 1 50 88' stroke='%23fff' stroke-width='8' stroke-linecap='round' fill='none'/%3E%3C/svg%3E" />
   <style>
     :root{
-      --bg:#05060a;        /* Fundo geral */
-      --fg:#cfe9ff;        /* Texto */
-      --neon1:#00f7ff;     /* Ciano neon */
-      --neon2:#7a5cff;     /* Roxo neon */
-      --danger:#ff3b58;    /* Vermelho de dano */
-      --gold:#ffd166;      /* Super bônus */
-      --muted:#9bb4c7;
-      --panel:#0b1222a6;   /* Painéis translucidos */
-      --border:rgba(255,255,255,.08);
+      --bg:#05060a; --fg:#cfe9ff; --muted:#9bb4c7; --panel:#0b1222a6; --border:rgba(255,255,255,.08);
+      --c1:#7a5cff; --c2:#00f7ff; --gold:#ffd166; --danger:#ff3b58; --ok:#4df0a6;
     }
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;background:radial-gradient(1200px 800px at 50% 40%, #0b1020 0%, var(--bg) 55%, #030409 100%);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Noto Sans",sans-serif}
@@ -26,31 +19,26 @@
     header h1{font-size:16px;margin:0;letter-spacing:.1em;font-weight:700}
     header .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.03);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03)}
     button, .btn{appearance:none;border:none;padding:8px 12px;border-radius:10px;background:linear-gradient(135deg, rgba(122,92,255,.25), rgba(0,247,255,.15));color:var(--fg);cursor:pointer;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border)}
-    button:hover{filter:brightness(1.1)}
-    button:active{transform:translateY(1px)}
+    button:hover{filter:brightness(1.1)} button:active{transform:translateY(1px)}
 
-    /* Área principal em 2 colunas (canvas + ajuda) */
-    #main{display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:stretch;padding:12px;overflow:auto}
-    /* Em telas estreitas vira coluna única e a ajuda vira painel deslizante */
+    #main{display:grid;grid-template-columns:1fr 330px;gap:16px;align-items:stretch;padding:12px;overflow:auto}
     @media (max-width:1000px){ #main{grid-template-columns:1fr} }
 
     #game{width:100%;height:100%;display:grid;place-items:center}
     canvas{width:min(100%,100vh - 180px);height:min(100vw,100vh - 180px);max-width:100%;max-height:100%;background:radial-gradient( 800px 800px at 50% 50%, rgba(122,92,255,.06), rgba(0,247,255,.03) 40%, transparent 70% );border-radius:22px;box-shadow:0 0 0 1px var(--border), 0 20px 80px rgba(0,0,0,.4), inset 0 0 60px rgba(0,247,255,.06)}
 
-    /* HUD topo */
     #hud{position:fixed;top:60px;left:0;right:0;display:flex;justify-content:center;pointer-events:none}
     #hud .panel{pointer-events:auto;display:flex;gap:14px;align-items:center;padding:8px 12px;border-radius:12px;background:var(--panel);border:1px solid var(--border);backdrop-filter:blur(6px)}
     #hud .stat{min-width:120px}
     #hud .stat b{font-size:18px}
 
-    /* Ajuda lateral */
     aside#help{position:relative}
     #help .card{position:sticky;top:12px;max-height:calc(100vh - 160px);overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 10px 50px rgba(0,0,0,.35);backdrop-filter: blur(6px)}
     .card h2{margin:0 0 10px;font-size:18px}
     .kbd{font: 600 12px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; border:1px solid rgba(255,255,255,.2);padding:2px 6px;border-radius:6px;background:rgba(255,255,255,.06)}
     .hint{color:var(--muted);font-size:13px}
 
-    /* Painel móvel deslizante */
+    /* Drawer mobile */
     #helpDrawer{position:fixed;inset:auto 0 0 0;background:var(--panel);border-top:1px solid var(--border);border-radius:16px 16px 0 0;transform:translateY(110%);transition:transform .25s ease;backdrop-filter: blur(6px);padding:12px;z-index:10}
     #helpDrawer.open{transform:translateY(0)}
     #helpDrawer .drag{width:44px;height:5px;background:rgba(255,255,255,.2);border-radius:99px;margin:4px auto 10px}
@@ -59,9 +47,18 @@
     #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:rgba(12,16,28,.85);border:1px solid rgba(255,255,255,.1);padding:8px 12px;border-radius:10px;opacity:0;transition:opacity .25s ease;z-index:20}
     #toast.show{opacity:1}
 
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .row.stretch{justify-content:space-between}
-    .inline{display:inline-flex;gap:8px;align-items:center}
+    /* Loja in-run */
+    #shop{position:fixed;inset:0;background:rgba(2,6,14,.6);backdrop-filter: blur(6px);display:none;align-items:center;justify-content:center;z-index:30}
+    #shop.open{display:flex}
+    #shop .box{width:min(820px, 96vw);max-height:86vh;overflow:auto;background:rgba(8,12,22,.92);border:1px solid var(--border);border-radius:16px;padding:16px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(220px,1fr));gap:12px}
+    .card2{border:1px solid var(--border);border-radius:12px;padding:12px;background:rgba(255,255,255,.03)}
+    .price{color:var(--gold);font-weight:700}
+
+    /* Nova UI */
+    #novaBtn{position:fixed;right:16px;bottom:84px;z-index:9}
+    #novaBar{position:fixed;right:16px;bottom:60px;width:160px;height:6px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden}
+    #novaBar>span{display:block;height:100%;width:0%;background:linear-gradient(90deg, var(--c1), var(--c2))}
 
     @media (max-width:600px){ header h1{display:none} #hud .stat{min-width:auto} }
   </style>
@@ -69,7 +66,7 @@
 <body>
   <div id="wrap">
     <header>
-      <h1>ORBITAL — Shield the Core <small style="opacity:.6">v2</small></h1>
+      <h1>ORBITAL — Shield the Core <small style="opacity:.6">v4</small></h1>
       <div class="pill">
         <span id="status">Pronto</span>
         <span style="opacity:.5">•</span>
@@ -78,16 +75,19 @@
       <div class="row">
         <button id="btnStart">▶ Jogar</button>
         <button id="btnPause" title="P">⏸ Pausar</button>
-        <button id="btnScreenshot" title="K">📸 Screenshot</button>
-        <button id="btnMute" title="M">🔊 Som</button>
-        <button id="btnHelp">❔ Ajuda</button>
-        <button id="btnSettings" title="Configurações">⚙️</button>
+        <button id="btnShop" title="S">🛒 Loja (S)</button>
+        <button id="btnScreenshot" title="K">📸</button>
+        <button id="btnMute" title="M">🔊</button>
+        <button id="btnHelp">❔</button>
+        <button id="btnLab" title="Upgrades">🧪</button>
       </div>
     </header>
 
     <div id="hud">
       <div class="panel">
         <div class="stat">Pontuação: <b id="score">0</b> <small id="mult" class="hint">x1</small></div>
+        <div class="stat">Bits: <b id="bits">0</b></div>
+        <div class="stat">Células: <b id="cells">0</b></div>
         <div class="stat">Recorde: <b id="best">0</b></div>
         <div class="stat">Vidas: <b id="lives">3</b></div>
         <div class="stat">Fase: <b id="stage">1</b></div>
@@ -105,11 +105,11 @@
             <h2>Ajuda & Dicas</h2>
             <button id="btnCollapseHelp" class="btn" title="Recolher">↔️</button>
           </div>
-          <p>Gire o escudo circular para desviar as ameaças que vêm de fora para o centro. Cada desvio conta pontos e aumenta o multiplicador. Deixou passar, perde uma vida.</p>
+          <p>Desvie ameaças com o escudo giratório. Ganhe <b>bits</b> na rodada para comprar <b>micro-melhorias</b> na <b>Loja</b>. Ao final, você recebe <b>células</b> para upgrades permanentes no <b>Laboratório</b>.</p>
           <ul>
-            <li><b>Controles:</b> mouse/toque para mirar; teclas <span class="kbd">←/→</span> ou <span class="kbd">A/D</span> para giro fino; <span class="kbd">Espaço</span> começa; <span class="kbd">P</span> pausa; <span class="kbd">K</span> screenshot.</li>
-            <li><b>Poderes:</b> itens <span style="color:var(--gold)">dourados</span> ativam <i>lente de tempo</i>, <i>escudo amplo</i> ou <i>vida extra</i>.</li>
-            <li><b>Dica:</b> mantenha o arco levemente à frente da ameaça para garantir o desvio.</li>
+            <li><b>Controles:</b> mouse/toque para mirar; <span class="kbd">←/→</span> / <span class="kbd">A/D</span> para giro fino; <span class="kbd">Espaço</span> começa; <span class="kbd">P</span> pausa.</li>
+            <li><b>Loja in‑run:</b> <span class="kbd">S</span> ou botão 🛒</li>
+            <li><b>Habilidade:</b> <span class="kbd">Shift</span> ativa <i>Nova</i> (pulso radial).</li>
           </ul>
           <hr style="border-color:var(--border);opacity:.6" />
           <div class="row">
@@ -121,12 +121,12 @@
     </main>
 
     <footer>
-      <div class="hint">Desktop: <span class="kbd">Mouse</span> gira o escudo • <span class="kbd">←/→</span> ou <span class="kbd">A/D</span> • <span class="kbd">Espaço</span> inicia • <span class="kbd">P</span> pausa • <span class="kbd">M</span> mudo</div>
-      <div class="hint">Mobile: toque e arraste para girar</div>
+      <div class="hint">Desktop: <span class="kbd">Mouse</span> • <span class="kbd">←/→</span>/<span class="kbd">A/D</span> • <span class="kbd">Espaço</span> inicia • <span class="kbd">P</span> pausa • <span class="kbd">M</span> mudo • <span class="kbd">S</span> Loja • <span class="kbd">Shift</span> Nova</div>
+      <div class="hint">Mobile: toque e arraste • Botão flutuante ativa Nova</div>
     </footer>
   </div>
 
-  <!-- Painel móvel (aparece apenas em telas estreitas) -->
+  <!-- Drawer mobile -->
   <div id="helpDrawer" role="dialog" aria-label="Ajuda">
     <div class="drag"></div>
     <div class="row stretch" style="margin-bottom:8px">
@@ -137,297 +137,283 @@
     <ul>
       <li><b>Começar:</b> <span class="kbd">Espaço</span> • <b>Pausar:</b> <span class="kbd">P</span></li>
       <li><b>Mirar:</b> arraste ou mova o mouse; <b>Fino:</b> <span class="kbd">←/→</span> / <span class="kbd">A/D</span></li>
-      <li><b>Screenshot:</b> <span class="kbd">K</span></li>
+      <li><b>Loja:</b> <span class="kbd">S</span> • <b>Nova:</b> <span class="kbd">Shift</span> ou botão</li>
     </ul>
+  </div>
+
+  <!-- Indicador e botão da habilidade Nova -->
+  <div id="novaBar" aria-label="Recarga da Nova"><span></span></div>
+  <button id="novaBtn" class="btn" title="Ativar Nova">⚡ Nova</button>
+
+  <!-- LAB de Upgrades (persistentes) -->
+  <div id="lab" role="dialog" aria-modal="true" aria-label="Laboratório de Upgrades" hidden>
+    <div class="box">
+      <div class="row stretch">
+        <h3>🧪 Laboratório de Upgrades</h3>
+        <div class="inline">Células: <b class="cells" id="cellsLab">0</b>
+          <button id="btnCloseLab" class="btn">Fechar</button>
+        </div>
+      </div>
+      <p class="hint">Upgrades são <b>permanentes</b> (salvos no dispositivo). Partidas rendem células com base na pontuação.</p>
+      <div class="grid" id="upgradesGrid"></div>
+    </div>
+  </div>
+
+  <!-- LOJA in-run -->
+  <div id="shop" role="dialog" aria-modal="true" aria-label="Loja in-run">
+    <div class="box">
+      <div class="row stretch">
+        <h3>🛒 Loja (bits)</h3>
+        <div class="inline">Bits: <b id="bitsShop">0</b>
+          <button id="btnCloseShop" class="btn">Fechar</button>
+        </div>
+      </div>
+      <p class="hint">Micro-melhorias temporárias para esta rodada. Ofertas se renovam a cada <b>2 fases</b> e quando derrotar um <b>boss</b>.</p>
+      <div class="grid" id="shopGrid"></div>
+    </div>
   </div>
 
   <div id="toast" role="status" aria-live="polite"></div>
 
   <script>
   // =====================
-  // ORBITAL v2 — melhorias de UX e correções
+  // ORBITAL v4 — Loja in-run, Bosses e Parry Perfeito
   // =====================
-  const TAU = Math.PI * 2;
-  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-  const lerp = (a,b,t)=>a+(b-a)*t;
-  const angleNorm = (a)=>{ a%=TAU; if(a<0) a+=TAU; return a; }
-  const angleDiff = (a,b)=>{ let d = (a-b+Math.PI)%(TAU)-Math.PI; return d< -Math.PI? d+TAU: d; }
+  const TAU = Math.PI*2; const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)); const lerp=(a,b,t)=>a+(b-a)*t; const angleNorm=a=>{a%=TAU; if(a<0)a+=TAU; return a}; const angleDiff=(a,b)=>{let d=(a-b+Math.PI)%(TAU)-Math.PI; return d<-Math.PI?d+TAU:d};
+  const rand=(a,b)=>a+Math.random()*(b-a);
 
   // UI refs
-  const cvs = document.getElementById('cvs');
-  const ctx = cvs.getContext('2d');
-  const scoreEl = document.getElementById('score');
-  const bestEl = document.getElementById('best');
-  const livesEl = document.getElementById('lives');
-  const stageEl = document.getElementById('stage');
-  const fpsEl = document.getElementById('fps');
-  const statusEl = document.getElementById('status');
-  const toastEl = document.getElementById('toast');
+  const qs = s=>document.querySelector(s);
+  const cvs=qs('#cvs'), ctx=cvs.getContext('2d');
+  const scoreEl=qs('#score'), bestEl=qs('#best'), livesEl=qs('#lives'), stageEl=qs('#stage'), fpsEl=qs('#fps'), statusEl=qs('#status');
+  const bitsEl=qs('#bits'), cellsEl=qs('#cells'), toastEl=qs('#toast');
+  const btnStart=qs('#btnStart'), btnPause=qs('#btnPause'), btnShop=qs('#btnShop'), btnHelp=qs('#btnHelp'), btnMute=qs('#btnMute'), btnScreenshot=qs('#btnScreenshot'), btnLab=qs('#btnLab');
+  const helpCard=qs('#helpCard'), btnCollapseHelp=qs('#btnCollapseHelp'); const helpDrawer=qs('#helpDrawer'), btnCloseDrawer=qs('#btnCloseDrawer');
+  const volumeSlider=qs('#volume'), reduceMotionChk=qs('#reduceMotion');
+  const novaBtn=qs('#novaBtn'); const novaBar=qs('#novaBar>span');
+  const lab=qs('#lab'), upgradesGrid=qs('#upgradesGrid'), cellsLabEl=qs('#cellsLab'), btnCloseLab=qs('#btnCloseLab');
+  const shop=qs('#shop'), shopGrid=qs('#shopGrid'), btnCloseShop=qs('#btnCloseShop'), bitsShopEl=qs('#bitsShop');
 
-  const btnStart = document.getElementById('btnStart');
-  const btnPause = document.getElementById('btnPause');
-  const btnHelp = document.getElementById('btnHelp');
-  const btnSettings = document.getElementById('btnSettings');
-  const btnScreenshot = document.getElementById('btnScreenshot');
-  const btnMute = document.getElementById('btnMute');
-  const btnCollapseHelp = document.getElementById('btnCollapseHelp');
-  const helpCard = document.getElementById('helpCard');
-  const volumeSlider = document.getElementById('volume');
-  const reduceMotionChk = document.getElementById('reduceMotion');
+  // Persistência
+  const loadJSON=(k,def)=>{ try{ return JSON.parse(localStorage.getItem(k)) ?? def }catch{ return def } };
+  const saveJSON=(k,v)=>localStorage.setItem(k, JSON.stringify(v));
+  const BEST_KEY='orbital_highscore', VOL_KEY='orbital_volume', HELP_KEY='orbital_helpCollapsed', UPG_KEYS='orbital_upgrades_v4', CELLS_KEY='orbital_cells_v4';
 
-  const helpDrawer = document.getElementById('helpDrawer');
-  const btnCloseDrawer = document.getElementById('btnCloseDrawer');
+  const defaultUpgrades={ width:0, speed:0, timelens:0, life:0, novaCD:0 };
 
-  const state = {
+  const state={
     running:false, paused:false, gameOver:false,
     t:0, dt:0, timeScale:1,
-    width:cvs.width, height:cvs.height,
-    center:{x:cvs.width/2, y:cvs.height/2},
-    rBase:Math.min(cvs.width,cvs.height)/2 * 0.68,
-    rShield:Math.min(cvs.width,cvs.height)/2 * 0.36,
-    rCore:Math.min(cvs.width,cvs.height)/2 * 0.09,
-    shieldAngle:0,
-    shieldWidth:TAU*0.07, shieldTargetWidth:TAU*0.07,
-    shieldSpeed:2.6,
+    width:cvs.width, height:cvs.height, center:{x:cvs.width/2,y:cvs.height/2},
+    rBase:Math.min(cvs.width,cvs.height)/2*0.68, rShield:Math.min(cvs.width,cvs.height)/2*0.36, rCore:Math.min(cvs.width,cvs.height)/2*0.09,
+    shieldAngle:0, shieldWidth:TAU*0.07, shieldTargetWidth:TAU*0.07, shieldSpeed:2.6,
     inputs:{left:false,right:false,mouseAngle:null},
     threats:[], particles:[],
-    score:0, best: Number(localStorage.getItem('orbital_highscore')||0),
-    combo:0, lives:3, stage:1,
-    spawnTimer:0, spawnInterval:0.8, difficulty:0,
-    reduceMotion:false,
-    audioEnabled:true, muted:false, volume:Number(localStorage.getItem('orbital_volume')||0.7),
-    helpCollapsed: localStorage.getItem('orbital_helpCollapsed')==='1',
+    score:0, best:Number(localStorage.getItem(BEST_KEY)||0), combo:0, lives:3, stage:1,
+    spawnTimer:0, spawnInterval:0.8, difficulty:0, reduceMotion:false,
+    audioEnabled:true, muted:false, volume:Number(localStorage.getItem(VOL_KEY)||0.7),
+    helpCollapsed: localStorage.getItem(HELP_KEY)==='1',
+
+    // Moedas
+    bits:0, // in-run
+    cells:Number(localStorage.getItem(CELLS_KEY)||0), // meta
+
+    // Upgrades persistentes
+    upgrades: loadJSON(UPG_KEYS, defaultUpgrades),
+
+    // Habilidade Nova
+    novaCooldownBase:12, novaCooldown:0, novaReady:true,
+
+    // Loja in-run
+    shopOffers:[], nextShopStage:2, scoreMultTempUntil:0, widthBoostUntil:0, slowUntil:0, autoAimUntil:0, grace:0,
+
+    // Boss
+    boss:null, bossActive:false, bossTimer:0,
   };
-  bestEl.textContent = state.best;
-  volumeSlider.value = String(state.volume);
-  reduceMotionChk.checked = state.reduceMotion;
+  bestEl.textContent=state.best; cellsEl.textContent=state.cells; volumeSlider.value=String(state.volume); reduceMotionChk.checked=state.reduceMotion;
 
-  // ====== Áudio via WebAudio ======
-  let audioCtx = null;
-  function ensureAudio(){ if(!state.audioEnabled) return; if(!audioCtx){ const AC = window.AudioContext || window.webkitAudioContext; audioCtx = AC? new AC(): null; } }
-  function beep(type='ping', baseGain=0.02){
-    if(state.muted) return; ensureAudio(); if(!audioCtx) return;
-    const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.type='sine';
-    const now = audioCtx.currentTime;
-    if(type==='ping'){ o.frequency.setValueAtTime(880, now); o.frequency.exponentialRampToValueAtTime(2200, now+0.06); }
-    else if(type==='hit'){ o.frequency.setValueAtTime(220, now); o.frequency.exponentialRampToValueAtTime(70, now+0.12); }
-    else if(type==='power'){ o.frequency.setValueAtTime(330, now); o.frequency.exponentialRampToValueAtTime(1320, now+0.2); }
-    const gain = Math.max(0.0001, baseGain * state.volume);
-    g.gain.setValueAtTime(gain, now); g.gain.exponentialRampToValueAtTime(0.0001, now+0.25);
-    o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(now+0.28);
-  }
+  // ===== Áudio =====
+  let audioCtx=null; function ensureAudio(){ if(!state.audioEnabled) return; if(!audioCtx){ const AC=window.AudioContext||window.webkitAudioContext; audioCtx=AC?new AC():null; } }
+  function beep(type='ping', baseGain=0.02){ if(state.muted) return; ensureAudio(); if(!audioCtx) return; const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='sine'; const now=audioCtx.currentTime;
+    if(type==='ping'){ o.frequency.setValueAtTime(880,now); o.frequency.exponentialRampToValueAtTime(2200, now+0.06);} 
+    else if(type==='hit'){ o.frequency.setValueAtTime(220,now); o.frequency.exponentialRampToValueAtTime(70, now+0.12);} 
+    else if(type==='power'){ o.frequency.setValueAtTime(330,now); o.frequency.exponentialRampToValueAtTime(1320, now+0.2);} 
+    else if(type==='nova'){ o.frequency.setValueAtTime(150,now); o.frequency.exponentialRampToValueAtTime(40, now+0.35);} 
+    else if(type==='perfect'){ o.frequency.setValueAtTime(1200,now); o.frequency.exponentialRampToValueAtTime(2200, now+0.08);} 
+    else if(type==='boss'){ o.frequency.setValueAtTime(500,now); o.frequency.exponentialRampToValueAtTime(200, now+0.3);} 
+    g.gain.setValueAtTime(Math.max(0.0001, baseGain*state.volume), now); g.gain.exponentialRampToValueAtTime(0.0001, now+0.35); o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(now+0.4); }
 
-  // ====== Entradas ======
-  function updateMouseAngle(clientX, clientY){
-    const rect = cvs.getBoundingClientRect();
-    const x = (clientX - rect.left) * (cvs.width/rect.width);
-    const y = (clientY - rect.top) * (cvs.height/rect.height);
-    const dx = x - state.center.x; const dy = y - state.center.y;
-    state.inputs.mouseAngle = Math.atan2(dy, dx);
-  }
+  // ===== Entradas =====
+  function updateMouseAngle(clientX,clientY){ const rect=cvs.getBoundingClientRect(); const x=(clientX-rect.left)*(cvs.width/rect.width); const y=(clientY-rect.top)*(cvs.height/rect.height); const dx=x-state.center.x, dy=y-state.center.y; state.inputs.mouseAngle=Math.atan2(dy,dx); }
   cvs.addEventListener('mousemove', e=>updateMouseAngle(e.clientX,e.clientY));
   cvs.addEventListener('touchstart', e=>{ const t=e.touches[0]; updateMouseAngle(t.clientX,t.clientY); });
   cvs.addEventListener('touchmove',  e=>{ const t=e.touches[0]; updateMouseAngle(t.clientX,t.clientY); });
 
   window.addEventListener('keydown', e=>{
-    if(e.code==='ArrowLeft' || e.code==='KeyA') state.inputs.left = true;
-    if(e.code==='ArrowRight'|| e.code==='KeyD') state.inputs.right = true;
+    if(e.code==='ArrowLeft'||e.code==='KeyA') state.inputs.left=true;
+    if(e.code==='ArrowRight'||e.code==='KeyD') state.inputs.right=true;
     if(e.code==='Space'){ if(!state.running||state.gameOver){ startGame(); } }
     if(e.code==='KeyP'){ togglePause(); }
     if(e.code==='KeyM'){ toggleMute(); }
+    if(e.code==='KeyS'){ toggleShop(); }
     if(e.code==='KeyH'){ toggleHelp(); }
     if(e.code==='KeyK'){ saveScreenshot(); }
+    if(e.code==='ShiftLeft'||e.code==='ShiftRight'){ activateNova(); }
   });
-  window.addEventListener('keyup', e=>{
-    if(e.code==='ArrowLeft' || e.code==='KeyA') state.inputs.left = false;
-    if(e.code==='ArrowRight'|| e.code==='KeyD') state.inputs.right = false;
-  });
+  window.addEventListener('keyup', e=>{ if(e.code==='ArrowLeft'||e.code==='KeyA') state.inputs.left=false; if(e.code==='ArrowRight'||e.code==='KeyD') state.inputs.right=false; });
+  novaBtn.addEventListener('click', activateNova);
 
-  // ====== Entidades ======
-  function spawnThreat(){
-    const angle = Math.random()*TAU;
-    const speed = 70 + 10*state.difficulty + Math.random()*25; // px/s
-    const special = Math.random() < Math.min(0.05 + state.difficulty*0.002, 0.18);
-    state.threats.push({ angle, r: state.rBase*0.98, vr: -speed, alive:true, deflected:false, color: special? '#ffd166' : '#7a5cff', special });
-  }
-  function addParticles(x,y,color,count=18,spread=TAU){
-    for(let i=0;i<count;i++){
-      const a = Math.random()*spread; const v = 60 + Math.random()*220;
-      state.particles.push({x,y, vx:Math.cos(a)*v, vy:Math.sin(a)*v, life:0.6+Math.random()*0.4, age:0, color});
-    }
-  }
+  // ===== Loja in-run =====
+  const SHOP_POOL=[
+    { id:'WIDE', name:'Escudo ++', desc:'+25% largura por 12s', cost:25, apply:()=>{ state.widthBoostUntil = state.t + 12; state.shieldTargetWidth = TAU*0.07 * (1+0.06*(state.upgrades.width||0)) * 1.25; setTimeout(()=>{ state.shieldTargetWidth = TAU*0.07 * (1+0.06*(state.upgrades.width||0)); }, 12050); } },
+    { id:'SCORE', name:'Pontuação +', desc:'+20% pontos por 20s', cost:28, apply:()=>{ state.scoreMultTempUntil = state.t + 20; } },
+    { id:'SLOW', name:'Lente rápida', desc:'Time slow 0.7x por 6s', cost:22, apply:()=>{ state.slowUntil = state.t + 6; } },
+    { id:'AUTO', name:'Auto-aim', desc:'Assistência de mira por 4s', cost:18, apply:()=>{ state.autoAimUntil = state.t + 4; } },
+    { id:'HEART', name:'Vida +1', desc:'Ganha uma vida', cost:35, apply:()=>{ state.lives = Math.min(8, state.lives+1); livesEl.textContent=state.lives; } },
+    { id:'NOVA', name:'Recarga NOVA', desc:'Recarga instantânea', cost:20, apply:()=>{ state.novaReady=true; state.novaCooldown=0; updateNovaUI(); } },
+    { id:'GRACE', name:'Graça', desc:'Ignora o próximo dano', cost:30, apply:()=>{ state.grace = Math.min(2, state.grace+1); } },
+  ];
+  function pickOffers(n=3){ const pool=[...SHOP_POOL]; const out=[]; for(let i=0;i<n && pool.length;i++){ const k=Math.floor(Math.random()*pool.length); out.push(pool.splice(k,1)[0]); } return out; }
+  function openShop(){ if(!state.running) return; state.paused=true; statusEl.textContent='Loja'; shop.classList.add('open'); bitsShopEl.textContent = state.bits; buildShopUI(); }
+  function closeShop(){ shop.classList.remove('open'); if(state.running){ state.paused=false; statusEl.textContent='Jogando'; } }
+  function toggleShop(){ if(shop.classList.contains('open')) closeShop(); else openShop(); }
+  btnShop.onclick=toggleShop; btnCloseShop.onclick=closeShop;
+  function buildShopUI(){ shopGrid.innerHTML=''; (state.shopOffers.length? state.shopOffers : (state.shopOffers=pickOffers(3)) );
+    for(const it of state.shopOffers){ const card=document.createElement('div'); card.className='card2'; card.innerHTML=`<h4>${it.name}</h4><div class="hint">${it.desc}</div><div class="row" style="margin-top:8px"><span class="price">${it.cost} ⬡</span><button class="btn">Comprar</button></div>`; const btn=card.querySelector('button'); btn.onclick=()=>{ if(state.bits>=it.cost){ state.bits-=it.cost; bitsEl.textContent=state.bits; bitsShopEl.textContent=state.bits; it.apply(); showToast('✔ Comprado: '+it.name, 900); beep('power',0.04);} else showToast('Bits insuficientes', 900); }; shopGrid.appendChild(card);} }
 
-  // ====== Lógica ======
-  function startGame(){
-    state.running = true; state.paused=false; state.gameOver=false;
-    state.t=0; state.dt=0; state.timeScale=1;
-    state.shieldAngle = 0; state.shieldWidth = TAU*0.07; state.shieldTargetWidth=state.shieldWidth;
-    state.threats.length=0; state.particles.length=0;
-    state.score=0; state.combo=0; state.lives=3; state.stage=1; state.difficulty=0;
-    state.spawnInterval=0.8; state.spawnTimer=0;
-    statusEl.textContent = 'Jogando';
-    if(audioCtx && audioCtx.state==='suspended') audioCtx.resume();
-  }
+  // Renovar ofertas a cada 2 fases e após boss
+  function maybeRefreshShop(){ state.shopOffers = pickOffers(3); if(shop.classList.contains('open')) buildShopUI(); }
 
-  function gameOver(){
-    state.running=false; state.gameOver=true; statusEl.textContent = 'Game Over';
-    showToast('Game Over • Pontos: '+state.score, 3000);
-    if(state.score>state.best){ state.best=state.score; localStorage.setItem('orbital_highscore', state.best); bestEl.textContent=state.best; showToast('🏆 Novo recorde!', 1800); }
-  }
+  // ===== LAB (persistente) =====
+  const UPG_CFG={ width:{name:'Escudo mais largo',info:'+6% por nível',base:50,max:5}, speed:{name:'Giro mais rápido',info:'+15% por nível',base:60,max:5}, timelens:{name:'Lente de tempo+',info:'+0,5s',base:80,max:5}, life:{name:'Vida inicial+',info:'+1',base:120,max:3}, novaCD:{name:'Nova mais frequente',info:'-1,2s',base:90,max:5} };
+  function upgCost(key){ const lvl=state.upgrades[key]||0; return Math.round( UPG_CFG[key].base * Math.pow(lvl+1, 2) ); }
+  function openLab(){ lab.hidden=false; if(state.running && !state.paused) togglePause(); renderUpgrades(); cellsLabEl.textContent=state.cells; }
+  function closeLab(){ lab.hidden=true; }
+  btnLab.addEventListener('click', openLab); btnCloseLab.addEventListener('click', closeLab);
+  function renderUpgrades(){ upgradesGrid.innerHTML=''; for(const key of Object.keys(UPG_CFG)){ const cfg=UPG_CFG[key]; const lvl=state.upgrades[key]||0; const max=cfg.max; const canMore=lvl<max; const cost=upgCost(key); const div=document.createElement('div'); div.className='card2'; div.innerHTML = `<h4>${cfg.name}</h4><div class="hint">${cfg.info}</div><div class="row" style="margin:8px 0 6px"><span class="hint">Nível: <b>${lvl}</b>/${max}</span><span class="price">${cost} ⚙️</span></div><div class="row"><button ${canMore?'':'disabled'} class="btn" data-upg="${key}">Comprar</button></div>`; upgradesGrid.appendChild(div);} upgradesGrid.querySelectorAll('button[data-upg]').forEach(btn=>{ btn.addEventListener('click', ()=>{ const key=btn.getAttribute('data-upg'); const cost=upgCost(key); const lvl=state.upgrades[key]||0; const max=UPG_CFG[key].max; if(lvl>=max) return; if(state.cells<cost){ showToast('Células insuficientes'); return; } state.cells-=cost; localStorage.setItem(CELLS_KEY,String(state.cells)); state.upgrades[key]=lvl+1; saveJSON(UPG_KEYS,state.upgrades); cellsEl.textContent=state.cells; cellsLabEl.textContent=state.cells; renderUpgrades(); showToast('Upgrade comprado: '+UPG_CFG[key].name, 1000); if(!state.running){ applyUpgradesToStats(); livesEl.textContent=state.lives; } }); }); }
 
-  function togglePause(){ if(!state.running) return; state.paused = !state.paused; statusEl.textContent = state.paused? 'Pausado' : 'Jogando'; }
-  function toggleHelp(){
-    // Desktop: recolhe/expande card lateral
-    if(window.matchMedia('(min-width:1001px)').matches){
-      state.helpCollapsed = !state.helpCollapsed;
-      applyHelpCollapsed();
-    } else {
-      // Mobile: abre/fecha drawer
-      helpDrawer.classList.toggle('open');
-    }
-    localStorage.setItem('orbital_helpCollapsed', state.helpCollapsed? '1':'0');
-  }
-  function applyHelpCollapsed(){ helpCard.style.display = state.helpCollapsed? 'none':'block'; }
-  btnCollapseHelp.addEventListener('click', ()=>{ state.helpCollapsed=!state.helpCollapsed; applyHelpCollapsed(); localStorage.setItem('orbital_helpCollapsed', state.helpCollapsed? '1':'0'); });
-
-  function toggleMute(){ state.muted = !state.muted; btnMute.textContent = state.muted? '🔇 Mudo' : '🔊 Som'; }
-
-  btnStart.onclick = startGame;
-  btnPause.onclick = togglePause;
-  btnHelp.onclick = ()=>toggleHelp();
-  btnSettings.onclick = ()=>toggleHelp();
-  btnScreenshot.onclick = ()=>saveScreenshot();
-  btnMute.onclick = ()=>toggleMute();
-  btnCloseDrawer.onclick = ()=>helpDrawer.classList.remove('open');
-
-  function hitCore(){ beep('hit', 0.03); state.lives--; state.combo=0; showToast('❌ Você levou dano', 900); if(state.lives<=0){ gameOver(); } }
-
-  function applyPower(){
-    const roll = Math.random();
-    if(roll < 0.4){ state.timeScale = 0.45; showToast('⏳ Lente de tempo', 700); setTimeout(()=>state.timeScale=1, 2200);
-    } else if(roll < 0.8){ state.shieldTargetWidth = TAU*0.13; showToast('🛡️ Escudo amplo', 700); setTimeout(()=>state.shieldTargetWidth=TAU*0.07, 2600);
-    } else { state.lives = Math.min(5, state.lives+1); showToast('💚 Vida extra', 900); }
+  // ===== Boss =====
+  function spawnBoss(){ state.bossActive=true; const hpBase=30 + Math.floor(state.difficulty*0.8); state.boss = { hp:hpBase, angle:Math.random()*TAU, rot:rand(-0.5,0.5), fireTimer:0, fireInterval:1.2, r: state.rBase*0.82, color:'#ffba49' }; showToast('👾 Boss!'); beep('boss',0.05); }
+  function updateBoss(dt){ if(!state.bossActive||!state.boss) return; const b=state.boss; b.angle = angleNorm(b.angle + b.rot*dt); b.fireTimer -= dt; if(b.fireTimer<=0){ b.fireTimer += Math.max(0.5, b.fireInterval - state.difficulty*0.01); // atira em leque
+      const spread=TAU/6; for(let i=-2;i<=2;i++){ const a=angleNorm(b.angle + i*(spread/5)); spawnThreatAt(a, 100 + 10*state.difficulty, false, '#ff8a7a'); } }
+    if(b.hp<=0){ // morre
+      state.bossActive=false; state.boss=null; showToast('✅ Boss derrotado! +40 bits', 1600); state.bits += 40; bitsEl.textContent=state.bits; maybeRefreshShop(); }
   }
 
-  function update(dt){
-    if(!state.running||state.paused) return;
+  // ===== Entidades =====
+  function spawnThreat(){ const kindRand=Math.random(); let type='normal'; if(state.difficulty>20 && kindRand<0.20) type='fast'; if(state.difficulty>35 && kindRand<0.35) type='snake'; const angle=Math.random()*TAU; let speed=70+10*state.difficulty+Math.random()*25; if(type==='fast') speed*=1.35; const special=Math.random()<Math.min(0.05+state.difficulty*0.002,0.20); const color = special? '#ffd166' : (type==='fast'? '#ff8a7a':'#7a5cff'); const th={ angle, r:state.rBase*0.98, vr:-speed, alive:true, deflected:false, color, special, type }; if(type==='snake'){ th.wigA=Math.random()*TAU; th.wigF=2+Math.random()*2; } state.threats.push(th); }
+  function spawnThreatAt(angle, speed, special=false, color='#7a5cff'){ state.threats.push({ angle, r:state.rBase*0.98, vr:-speed, alive:true, deflected:false, color: special? '#ffd166': color, special, type:'bossShot' }); }
+  function addParticles(x,y,color,count=18,spread=TAU){ for(let i=0;i<count;i++){ const a=Math.random()*spread; const v=60+Math.random()*220; state.particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:0.6+Math.random()*0.4,age:0,color}); } }
 
-    // Dificuldade: FIX do clamp (valor, min, max)
-    state.difficulty += dt;
-    state.spawnInterval = clamp(0.85 - state.difficulty*0.015, 0.35, 0.85);
-    state.stage = 1 + Math.floor(state.difficulty/20);
+  // ===== Jogo =====
+  function applyUpgradesToStats(){ const u=state.upgrades; const widthMult = 1 + 0.06*(u.width||0); state.shieldTargetWidth = TAU*0.07 * widthMult; state.shieldWidth = state.shieldTargetWidth; state.shieldSpeed = 2.6 * (1 + 0.15*(u.speed||0)); state.lives = 3 + (u.life||0); state.novaCooldownBase = Math.max(5, 12 - 1.2*(u.novaCD||0)); }
+
+  function startGame(){ state.running=true; state.paused=false; state.gameOver=false; state.t=0; state.dt=0; state.timeScale=1; state.shieldAngle=0; state.threats.length=0; state.particles.length=0; state.score=0; state.combo=0; state.stage=1; state.difficulty=0; state.spawnInterval=0.8; state.spawnTimer=0; state.novaCooldown=0; state.novaReady=true; state.bits=0; state.grace=0; state.bossActive=false; state.boss=null; state.nextShopStage=2; bitsEl.textContent=0; scoreEl.textContent=0; livesEl.textContent=0; statusEl.textContent='Jogando'; if(audioCtx && audioCtx.state==='suspended') audioCtx.resume(); applyUpgradesToStats(); livesEl.textContent=state.lives; cellsEl.textContent=state.cells; document.getElementById('mult').textContent='x1'; updateNovaUI(); maybeRefreshShop(); }
+
+  function endRunRewards(){ const gained = Math.max(1, Math.floor(state.score/120)); state.cells += gained; localStorage.setItem(CELLS_KEY, String(state.cells)); cellsEl.textContent=state.cells; cellsLabEl.textContent=state.cells; showToast('⛭ Você ganhou '+gained+' células', 2000); }
+
+  function gameOver(){ state.running=false; state.gameOver=true; statusEl.textContent='Game Over'; showToast('Game Over • Pontos: '+state.score, 3000); endRunRewards(); if(state.score>state.best){ state.best=state.score; localStorage.setItem(BEST_KEY, state.best); bestEl.textContent=state.best; showToast('🏆 Novo recorde!', 1800); } }
+
+  function togglePause(){ if(!state.running) return; state.paused=!state.paused; statusEl.textContent=state.paused? 'Pausado':'Jogando'; }
+  function toggleMute(){ state.muted=!state.muted; btnMute.textContent = state.muted? '🔇' : '🔊'; }
+  function toggleHelp(){ if(window.matchMedia('(min-width:1001px)').matches){ state.helpCollapsed=!state.helpCollapsed; helpCard.style.display = state.helpCollapsed? 'none':'block'; localStorage.setItem(HELP_KEY, state.helpCollapsed?'1':'0'); } else { helpDrawer.classList.toggle('open'); } }
+
+  btnStart.onclick=startGame; btnPause.onclick=togglePause; btnHelp.onclick=toggleHelp; btnScreenshot.onclick=()=>saveScreenshot(); btnMute.onclick=toggleMute; btnCloseDrawer.onclick=()=>helpDrawer.classList.remove('open'); btnCollapseHelp.onclick=()=>{ state.helpCollapsed=!state.helpCollapsed; helpCard.style.display=state.helpCollapsed?'none':'block'; localStorage.setItem(HELP_KEY, state.helpCollapsed?'1':'0'); };
+
+  // ===== Nova =====
+  function updateNovaUI(){ const pct = 1 - clamp(state.novaCooldown/state.novaCooldownBase, 0, 1); novaBar.style.width = (pct*100).toFixed(1)+'%'; novaBtn.disabled = state.novaCooldown>0; novaBtn.style.opacity = state.novaCooldown>0? '0.6':'1'; }
+  function activateNova(){ if(!state.running||state.paused) return; if(state.novaCooldown>0) return; state.novaCooldown=state.novaCooldownBase; beep('nova',0.05); addParticles(state.center.x,state.center.y,'#00f7ff',120); const inner=state.rShield-40, outer=state.rShield+120; for(const th of state.threats){ if(!th.alive||th.deflected) continue; if(th.r>=inner && th.r<=outer){ th.deflected=true; th.vr=Math.abs(th.vr)*1.15; addParticles(state.center.x+Math.cos(th.angle)*state.rShield, state.center.y+Math.sin(th.angle)*state.rShield, th.color, 12); state.score += 8; } } scoreEl.textContent=state.score; showToast('⚡ Nova!'); }
+
+  // ===== Colisões, Parry perfeito =====
+  function onDeflect(th, perfect=false){ th.deflected=true; th.vr=Math.abs(th.vr)*(th.type==='fast'?1.1:1); const x=state.center.x+Math.cos(th.angle)*state.rShield; const y=state.center.y+Math.sin(th.angle)*state.rShield; addParticles(x,y, th.special?'#ffd166':th.color, th.special?36:18); beep(th.special? 'power': (perfect? 'perfect':'ping'), th.special?0.04:(perfect?0.035:0.02)); const gain=10+Math.floor(state.difficulty*0.6); state.combo=Math.min(50, state.combo+1); const mult=1+Math.floor(state.combo/8); let scoreAdd=(th.special?50:gain)*mult; if(state.t <= state.scoreMultTempUntil) scoreAdd=Math.floor(scoreAdd*1.2); state.score += scoreAdd; scoreEl.textContent=state.score; document.getElementById('mult').textContent='x'+mult; // bits
+    let bitsAdd = th.special? 4: 1; if(perfect) bitsAdd += 2; state.bits += bitsAdd; bitsEl.textContent=state.bits; if(th.special) applyPower(); }
+
+  function hitCore(){ if(state.grace>0){ state.grace--; showToast('🛡️ Graça consumida'); return; } beep('hit',0.03); state.lives--; state.combo=0; showToast('❌ Você levou dano', 900); if(state.lives<=0){ gameOver(); } }
+
+  function applyPower(){ const u=state.upgrades; const roll=Math.random(); if(roll<0.4){ const base=2200; const extra=(u.timelens||0)*500; state.timeScale=0.45; showToast('⏳ Lente de tempo', 700); setTimeout(()=>state.timeScale=1, (base+extra)); } else if(roll<0.8){ const target = TAU*0.07*(1+0.06*(u.width||0)); state.shieldTargetWidth = target*1.6; showToast('🛡️ Escudo amplo', 700); setTimeout(()=>state.shieldTargetWidth = target, 2600); } else { state.lives = Math.min(8, state.lives+1); showToast('💚 Vida extra', 900); livesEl.textContent=state.lives; } }
+
+  // ===== Update =====
+  function update(dt){ if(!state.running||state.paused) return;
+    state.difficulty += dt; state.spawnInterval = clamp(0.85 - state.difficulty*0.015, 0.30, 0.85); state.stage = 1 + Math.floor(state.difficulty/20);
+
+    // Ofertas de loja a cada 2 fases
+    if(state.stage >= state.nextShopStage){ state.nextShopStage += 2; maybeRefreshShop(); }
+
+    // Boss a cada 5 fases
+    if(!state.bossActive && state.stage>1 && state.stage%5===0){ spawnBoss(); }
+    updateBoss(dt);
+
+    // Efeitos temporários
+    state.timeScale = (state.t <= state.slowUntil)? 0.7 : 1;
 
     // Entradas
-    if(state.inputs.mouseAngle!=null){
-      let diff = angleDiff(state.inputs.mouseAngle, state.shieldAngle);
-      state.shieldAngle = angleNorm(state.shieldAngle + diff*clamp( dt*7, 0, 0.25 ));
-    }
-    if(state.inputs.left)  state.shieldAngle = angleNorm(state.shieldAngle - state.shieldSpeed*dt);
-    if(state.inputs.right) state.shieldAngle = angleNorm(state.shieldAngle + state.shieldSpeed*dt);
+    if(state.inputs.mouseAngle!=null){ let target = state.inputs.mouseAngle; if(state.t <= state.autoAimUntil && state.threats.length){ // auto-aim: leve atração ao ameaças próximas ao escudo
+        const near = state.threats.reduce((p,c)=> (c.vr<0 && !c.deflected && c.r>state.rShield-80 && c.r<state.rShield+140 && Math.abs(angleDiff(c.angle,state.shieldAngle))<Math.PI/3 && (!p || c.r<p.r))? c : p, null);
+        if(near) target = near.angle; }
+      let diff=angleDiff(target,state.shieldAngle); state.shieldAngle=angleNorm(state.shieldAngle + diff*clamp(dt*7,0,0.25)); }
+    if(state.inputs.left) state.shieldAngle=angleNorm(state.shieldAngle - state.shieldSpeed*dt);
+    if(state.inputs.right)state.shieldAngle=angleNorm(state.shieldAngle + state.shieldSpeed*dt);
 
-    // Largura do escudo
-    state.shieldWidth = lerp(state.shieldWidth, state.shieldTargetWidth, 1 - Math.exp(-dt*7));
+    // Largura interpola (se boost temporário acabou, converge ao alvo base)
+    const baseTarget = TAU*0.07 * (1+0.06*(state.upgrades.width||0)); if(state.t > state.widthBoostUntil) state.shieldTargetWidth = baseTarget; state.shieldWidth = lerp(state.shieldWidth, state.shieldTargetWidth, 1-Math.exp(-dt*7));
 
     // Spawns
-    state.spawnTimer -= dt;
-    if(state.spawnTimer<=0){ state.spawnTimer += state.spawnInterval*(0.6+Math.random()*0.8); spawnThreat(); }
+    state.spawnTimer -= dt; if(state.spawnTimer<=0 && !state.bossActive){ state.spawnTimer += state.spawnInterval*(0.6+Math.random()*0.8); spawnThreat(); }
 
     // Ameaças
-    const toRemove=[];
-    for(const th of state.threats){
-      th.r += th.vr * dt * state.timeScale;
-      const nearShield = (th.vr<0 && th.r <= state.rShield+12 && th.r >= state.rShield-18) || (th.vr>0 && th.r>= state.rShield-18 && th.r<= state.rShield+20);
-      if(nearShield && !th.deflected && th.alive){
-        const diff = Math.abs(angleDiff(th.angle, state.shieldAngle));
-        if(diff <= state.shieldWidth*0.5){
-          th.deflected = true; th.vr = Math.abs(th.vr);
-          const x = state.center.x + Math.cos(th.angle)*state.rShield;
-          const y = state.center.y + Math.sin(th.angle)*state.rShield;
-          addParticles(x,y, th.special? '#ffd166' : '#7a5cff', th.special? 36:18);
-          beep(th.special? 'power':'ping', th.special? 0.04:0.02);
-          const gain = 10 + Math.floor(state.difficulty*0.6);
-          state.combo = Math.min(50, state.combo+1);
-          const mult = 1 + Math.floor(state.combo/8);
-          state.score += (th.special? 50:gain) * mult;
-          scoreEl.textContent = state.score; document.getElementById('mult').textContent = 'x'+mult;
-          if(th.special) applyPower();
-        }
-      }
-      if(th.r <= state.rCore && th.alive && !th.deflected){ th.alive=false; addParticles(state.center.x, state.center.y, '#ff3b58', 60); hitCore(); livesEl.textContent = state.lives; if(state.lives<=0) toRemove.push(th); }
+    const toRemove=[]; for(const th of state.threats){ if(th.type==='snake'){ th.wigA += (th.wigF||2)*dt; th.angle = angleNorm(th.angle + Math.sin(th.wigA)*0.003); }
+      th.r += th.vr*dt*state.timeScale; const nearShield = (th.vr<0 && th.r <= state.rShield+12 && th.r >= state.rShield-18) || (th.vr>0 && th.r>= state.rShield-18 && th.r<= state.rShield+20);
+      if(nearShield && !th.deflected && th.alive){ const diff=Math.abs(angleDiff(th.angle,state.shieldAngle)); if(diff<=state.shieldWidth*0.5){ const perfect = (diff <= state.shieldWidth*0.15); if(perfect){ showToast('✨ Parry perfeito!'); } onDeflect(th, perfect); } }
+      if(th.r <= state.rCore && th.alive && !th.deflected){ th.alive=false; addParticles(state.center.x,state.center.y,'#ff3b58',60); hitCore(); livesEl.textContent=state.lives; if(state.lives<=0) toRemove.push(th); }
       if(th.r >= state.rBase*1.02 || th.r < 2){ toRemove.push(th); }
     }
     if(toRemove.length){ state.threats = state.threats.filter(x=>!toRemove.includes(x)); }
 
     // Partículas
-    for(const p of state.particles){ p.age += dt * state.timeScale; p.x += p.vx*dt; p.y += p.vy*dt; const damp = state.reduceMotion? 0.995: 0.992; p.vx *= damp; p.vy *= damp; }
-    state.particles = state.particles.filter(p=>p.age<p.life);
+    for(const p of state.particles){ p.age += dt*state.timeScale; p.x += p.vx*dt; p.y += p.vy*dt; const damp = state.reduceMotion?0.995:0.992; p.vx*=damp; p.vy*=damp; } state.particles = state.particles.filter(p=>p.age<p.life);
+
+    // Nova cooldown
+    if(state.novaCooldown>0){ state.novaCooldown -= dt; if(state.novaCooldown<=0){ state.novaCooldown=0; showToast('⚡ Nova pronta'); } updateNovaUI(); }
   }
 
-  // ====== Render ======
-  let last=performance.now(), accFPS=0, frames=0;
-  function loop(now){
-    const rawdt = Math.min(0.05, (now-last)/1000); last=now; state.dt = rawdt; state.t += rawdt;
-    update(rawdt); draw();
-    frames++; accFPS += 1/rawdt; if(frames>=20){ fpsEl.textContent = 'FPS: '+Math.round(accFPS/frames); frames=0; accFPS=0; }
-    requestAnimationFrame(loop);
-  }
-  requestAnimationFrame(loop);
+  // ===== Render =====
+  let last=performance.now(), accFPS=0, frames=0; function loop(now){ const rawdt=Math.min(0.05,(now-last)/1000); last=now; state.dt=rawdt; state.t+=rawdt; update(rawdt); draw(); frames++; accFPS+=1/rawdt; if(frames>=20){ fpsEl.textContent='FPS: '+Math.round(accFPS/frames); frames=0; accFPS=0; } requestAnimationFrame(loop);} requestAnimationFrame(loop);
 
-  function draw(){
-    const w=cvs.width,h=cvs.height; ctx.clearRect(0,0,w,h);
-    ctx.save(); ctx.translate(state.center.x, state.center.y);
+  function draw(){ const w=cvs.width,h=cvs.height; ctx.clearRect(0,0,w,h); ctx.save(); ctx.translate(state.center.x,state.center.y);
+    // BG
+    const grad=ctx.createRadialGradient(0,0,state.rCore*0.2,0,0,state.rBase); grad.addColorStop(0,'rgba(0,247,255,.05)'); grad.addColorStop(1,'rgba(122,92,255,.03)'); ctx.fillStyle=grad; ctx.beginPath(); ctx.arc(0,0,state.rBase,0,TAU); ctx.fill();
+    // anéis
+    ctx.globalCompositeOperation='lighter'; ctx.strokeStyle='rgba(0,247,255,.1)'; ctx.lineWidth=2; ctx.shadowColor='rgba(0,247,255,.35)'; ctx.shadowBlur=8; for(let i=0;i<3;i++){ ctx.beginPath(); ctx.arc(0,0, state.rShield + (i-1)*24, 0, TAU); ctx.stroke(); } ctx.shadowBlur=0; ctx.globalCompositeOperation='source-over';
+    // núcleo
+    const corePulse = 1 + Math.sin(state.t*3)*0.04; ctx.fillStyle='#00f7ff'; ctx.shadowColor='#00f7ff'; ctx.shadowBlur=30; ctx.beginPath(); ctx.arc(0,0, state.rCore*corePulse, 0, TAU); ctx.fill(); ctx.shadowBlur=0;
+    // boss
+    if(state.bossActive && state.boss){ const b=state.boss; ctx.save(); ctx.rotate(b.angle); ctx.strokeStyle=b.color; ctx.lineWidth=10; ctx.globalAlpha=0.8; ctx.beginPath(); ctx.arc(0,0,b.r, -0.4, 0.4); ctx.stroke(); ctx.globalAlpha=1; ctx.fillStyle=b.color; ctx.font='bold 22px system-ui'; ctx.textAlign='center'; ctx.fillText('BOSS '+b.hp, Math.cos(0)*b.r, Math.sin(0)*b.r - 18); ctx.restore(); }
+    // escudo
+    const aw=state.shieldWidth; ctx.save(); ctx.rotate(state.shieldAngle); const grad2=ctx.createLinearGradient(state.rShield-aw*0, -8, state.rShield+aw*0, 8); grad2.addColorStop(0,'#7a5cff'); grad2.addColorStop(1,'#00f7ff'); ctx.strokeStyle=grad2; ctx.lineWidth=16; ctx.lineCap='round'; ctx.shadowColor='#7a5cff'; ctx.shadowBlur=20; ctx.beginPath(); ctx.arc(0,0, state.rShield, -aw/2, aw/2); ctx.stroke(); ctx.restore();
+    // ameaças
+    for(const th of state.threats){ ctx.save(); ctx.rotate(th.angle); ctx.fillStyle=th.color; ctx.shadowColor=th.color; ctx.shadowBlur=(th.special?30:16); const r=th.r; const sz=(th.special?14:(th.type==='fast'?9:10)); ctx.beginPath(); ctx.arc(r,0,sz,0,TAU); ctx.fill(); ctx.strokeStyle=th.color; ctx.lineWidth=2; ctx.globalAlpha=0.7; ctx.beginPath(); ctx.moveTo(r,0); ctx.lineTo(r + (th.deflected? 28: -28), 0); ctx.stroke(); ctx.globalAlpha=1; ctx.restore(); }
+    // partículas
+    for(const p of state.particles){ const t=1-(p.age/p.life); ctx.fillStyle=p.color; ctx.globalAlpha=Math.max(0,t); ctx.shadowColor=p.color; ctx.shadowBlur=18*t; ctx.beginPath(); ctx.arc(p.x-state.center.x,p.y-state.center.y,2+2*t,0,TAU); ctx.fill(); }
+    ctx.shadowBlur=0; ctx.globalAlpha=1; ctx.restore(); stageEl.textContent=state.stage; }
 
-    const grad = ctx.createRadialGradient(0,0, state.rCore*0.2, 0,0, state.rBase);
-    grad.addColorStop(0,'rgba(0,247,255,.05)'); grad.addColorStop(1,'rgba(122,92,255,.03)');
-    ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(0,0,state.rBase,0,TAU); ctx.fill();
+  // ===== UI util =====
+  let toastTimer=null; function showToast(msg,dur=1200){ toastEl.textContent=msg; toastEl.classList.add('show'); if(toastTimer) clearTimeout(toastTimer); toastTimer=setTimeout(()=>toastEl.classList.remove('show'), dur); }
+  function saveScreenshot(){ const a=document.createElement('a'); a.download='orbital-screenshot.png'; a.href=cvs.toDataURL('image/png'); a.click(); showToast('📸 Screenshot salva'); }
 
-    ctx.globalCompositeOperation='lighter';
-    ctx.strokeStyle='rgba(0,247,255,.1)'; ctx.lineWidth=2; ctx.shadowColor='rgba(0,247,255,.35)'; ctx.shadowBlur=8;
-    for(let i=0;i<3;i++){ ctx.beginPath(); ctx.arc(0,0, state.rShield + (i-1)*24, 0, TAU); ctx.stroke(); }
-    ctx.shadowBlur=0; ctx.globalCompositeOperation='source-over';
+  // HiDPI & layout
+  function resizeCanvas(){ const ratio=Math.min(3, window.devicePixelRatio||1); const size=Math.min(window.innerWidth-360, window.innerHeight-200); const px=Math.max(420,size); cvs.width=Math.floor(px*ratio); cvs.height=Math.floor(px*ratio); state.width=cvs.width; state.height=cvs.height; state.center={x:cvs.width/2,y:cvs.height/2}; state.rBase=Math.min(cvs.width,cvs.height)/2*0.68; state.rShield=Math.min(cvs.width,cvs.height)/2*0.36; state.rCore=Math.min(cvs.width,cvs.height)/2*0.09; }
+  window.addEventListener('resize', resizeCanvas); resizeCanvas();
 
-    ctx.save(); const corePulse = 1 + Math.sin(state.t*3)*0.04; ctx.fillStyle = '#00f7ff'; ctx.shadowColor='#00f7ff'; ctx.shadowBlur=30; ctx.beginPath(); ctx.arc(0,0, state.rCore*corePulse, 0, TAU); ctx.fill(); ctx.restore();
-
-    const aw = state.shieldWidth; ctx.save(); ctx.rotate(state.shieldAngle);
-    const grad2 = ctx.createLinearGradient(state.rShield-aw*0, -8, state.rShield+aw*0, 8);
-    grad2.addColorStop(0,'#7a5cff'); grad2.addColorStop(1,'#00f7ff'); ctx.strokeStyle = grad2; ctx.lineWidth = 16; ctx.lineCap='round'; ctx.shadowColor='#7a5cff'; ctx.shadowBlur=20;
-    ctx.beginPath(); ctx.arc(0,0, state.rShield, -aw/2, aw/2); ctx.stroke(); ctx.restore();
-
-    for(const th of state.threats){ ctx.save(); ctx.rotate(th.angle); ctx.fillStyle = th.color; ctx.shadowColor=th.color; ctx.shadowBlur = th.special? 30: 16; const r = th.r; const sz = th.special? 14: 10; ctx.beginPath(); ctx.arc(r, 0, sz, 0, TAU); ctx.fill(); ctx.strokeStyle = th.color; ctx.lineWidth=2; ctx.globalAlpha=0.7; ctx.beginPath(); ctx.moveTo(r,0); ctx.lineTo(r + (th.deflected? 28: -28), 0); ctx.stroke(); ctx.globalAlpha=1; ctx.restore(); }
-
-    for(const p of state.particles){ const t = 1 - (p.age/p.life); ctx.fillStyle = p.color; ctx.globalAlpha = Math.max(0, t); ctx.shadowColor = p.color; ctx.shadowBlur = 18*t; ctx.beginPath(); ctx.arc(p.x-state.center.x, p.y-state.center.y, 2+2*t, 0, TAU); ctx.fill(); }
-    ctx.shadowBlur=0; ctx.globalAlpha=1; ctx.restore();
-
-    stageEl.textContent = state.stage;
-  }
-
-  // ====== UI util ======
-  let toastTimer=null; function showToast(msg,dur=1200){ toastEl.textContent = msg; toastEl.classList.add('show'); if(toastTimer) clearTimeout(toastTimer); toastTimer = setTimeout(()=>toastEl.classList.remove('show'), dur); }
-  function saveScreenshot(){ const a = document.createElement('a'); a.download = 'orbital-screenshot.png'; a.href = cvs.toDataURL('image/png'); a.click(); showToast('📸 Screenshot salva'); }
-
-  // Ajuste HiDPI
-  function resizeCanvas(){
-    const ratio = Math.min(3, window.devicePixelRatio||1);
-    const size = Math.min(window.innerWidth - 360, window.innerHeight - 200); // reserva p/ painel
-    const px = Math.max(420, size);
-    cvs.width = Math.floor(px*ratio); cvs.height= Math.floor(px*ratio);
-    state.width=cvs.width; state.height=cvs.height; state.center={x:cvs.width/2,y:cvs.height/2};
-    state.rBase=Math.min(cvs.width,cvs.height)/2 * 0.68; state.rShield=Math.min(cvs.width,cvs.height)/2 * 0.36; state.rCore=Math.min(cvs.width,cvs.height)/2 * 0.09;
-  }
-  window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
-
-  // Estado inicial do painel de ajuda
-  applyHelpCollapsed();
-
-  // Volume & movimento
-  volumeSlider.addEventListener('input', ()=>{ state.volume = Number(volumeSlider.value); localStorage.setItem('orbital_volume', String(state.volume)); });
-  reduceMotionChk.addEventListener('change', ()=>{ state.reduceMotion = reduceMotionChk.checked; });
-
-  // Pausa automática ao perder foco
+  // Inicializações
+  helpCard.style.display = state.helpCollapsed? 'none':'block';
+  volumeSlider.addEventListener('input', ()=>{ state.volume=Number(volumeSlider.value); localStorage.setItem(VOL_KEY, String(state.volume)); });
+  reduceMotionChk.addEventListener('change', ()=>{ state.reduceMotion=reduceMotionChk.checked; });
   window.addEventListener('blur', ()=>{ if(state.running&&!state.paused) togglePause(); });
 
-  // No v2 removemos overlay intrusivo; o painel lateral não bloqueia interação.
+  // ===== Ajustes extra =====
+  // Converter deflects em dano no boss: cada parry perfeito reduz 3 HP, deflect normal reduz 1 HP
+  const _onDeflect = onDeflect; onDeflect = function(th, perfect=false){ _onDeflect(th, perfect); if(state.bossActive && state.boss){ state.boss.hp -= (perfect?3:1); if(state.boss.hp<0) state.boss.hp=0; } };
+
   </script>
 </body>
 </html>
