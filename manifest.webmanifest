@@ -1,7 +1,7 @@
 {
   "name": "ORBITAL — Shield the Core",
   "short_name": "ORBITAL",
-  "description": "Arcade Canvas • Loja por Tiers • PWA • Tema Villares",
+  "description": "Arcade Canvas • Loja com histórico e favoritos • Missões diárias • PWA • Tema Villares",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#0a1420",

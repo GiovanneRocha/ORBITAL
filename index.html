@@ -1,481 +1,677 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ORBITAL — Shield the Core v7.2 (menus + balance)</title>
-  <style>
-    :root{
-      --bg:#0b1020;--fg:#e7f0ff;--muted:#9fb4d6;--accent:#6cf;--accent-2:#26f;
-      --ok:#2ecc71;--warn:#f1c40f;--err:#e74c3c;--panel:#121a33aa;--card:#0f1730;
-      --btn:#142043;--btn-h:#1b2a57;--outline:#2b3c72;--chip:#1a274a;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;background:radial-gradient(1000px 600px at 80% -10%,#13234a,transparent),
-      radial-gradient(900px 700px at 20% 110%,#09122a,transparent),var(--bg);
-      color:var(--fg); font:500 16px/1.45 system-ui,Segoe UI,Roboto,Helvetica,Arial;
-      overflow:hidden;
-    }
-    a{color:var(--accent)}
-    h1,h2,h3{margin:.3rem 0}
-    .hud{position:fixed;inset:0;pointer-events:none}
-    .bar{display:flex;gap:12px;align-items:center;background:#0b1228d0;padding:8px 12px;border-bottom:1px solid var(--outline)}
-    .bar b{font-weight:700}
-    .chip{background:var(--chip);border:1px solid #2b3c72;padding:4px 8px;border-radius:999px}
-    .spacer{flex:1}
-    .btn{display:inline-flex;gap:.5rem;align-items:center;justify-content:center;cursor:pointer;user-select:none;
-      background:var(--btn);border:1px solid var(--outline);padding:.6rem 1rem;border-radius:.6rem;color:var(--fg);text-decoration:none;min-width:44px;min-height:40px}
-    .btn:focus{outline:2px solid var(--accent)}
-    .btn:hover{background:var(--btn-h)}
-    .btn.primary{background:linear-gradient(180deg,#2a64ff,#1b47c9);border-color:#2a64ff}
-    .btn.success{background:linear-gradient(180deg,#2ecc71,#229955);border-color:#2ecc71}
-    .btn.warn{background:linear-gradient(180deg,#f39c12,#c97b0f);border-color:#f39c12}
-    .stack{display:flex;flex-direction:column;gap:.75rem}
-    .row{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>ORBITAL — Shield the Core (v7.3)</title>
+<meta name="theme-color" content="#045494" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="assets/icon-192.png" />
+<style>
+:root{
+  --brand:#045494; --brand-2:#387db4; --brand-3:#4a83b6; --brand-4:#7caccc; --paper:#d6e2ed;
+  --bg:#0a1420; --fg:#eaf4ff; --muted:#bcd0df; --border:rgba(214,226,237,.14);
+  --panel:rgba(10,20,32,.72); --gold:#ffd166; --danger:#ff3b58; --ok:#4df0a6;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:radial-gradient(1200px 800px at 50% 40%, #0b1322 0%, #0a1420 55%, #070f18 100%);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,"Noto Sans",sans-serif}
+button{appearance:none;border:1px solid var(--border);border-radius:10px;padding:9px 12px;background:linear-gradient(135deg, rgba(4,84,148,.55), rgba(124,172,204,.16));color:var(--fg);cursor:pointer}
+button:disabled{opacity:.6;cursor:not-allowed} button:hover{filter:brightness(1.06)} button:active{transform:translateY(1px)}
+.badge{padding:2px 6px;border-radius:999px;border:1px solid var(--border);background:rgba(214,226,237,.10);font-size:12px}
+.kbd{font:600 12px ui-monospace, Menlo, Consolas, monospace; border:1px solid rgba(214,226,237,.25);padding:2px 6px;border-radius:6px;background:rgba(214,226,237,.06)}
 
-    /* Panels */
-    .overlay{position:fixed;inset:0;background:#0008;backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:24px}
-    .overlay.show{display:flex}
-    .panel{width:min(920px,95vw);max-height:90vh;overflow:auto;background:var(--panel);border:1px solid var(--outline);border-radius:12px;padding:16px 16px 20px}
-    .panel header{display:flex;align-items:center;gap:12px;border-bottom:1px solid #2b3c72;padding-bottom:8px;margin-bottom:12px}
-    .panel header .spacer{flex:1}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-    .card{background:var(--card);border:1px solid #25396b;border-radius:10px;padding:12px}
-    .price{display:flex;gap:8px;align-items:center}
-    .price .chip{padding:2px 8px}
+#wrap{position:fixed;inset:0;display:grid;grid-template-rows:auto 1fr auto}
+header,footer{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;gap:12px;background:linear-gradient( to bottom, rgba(4,84,148,.42), rgba(4,84,148,.16) );border-bottom:1px solid var(--border);backdrop-filter:blur(6px)}
+footer{border-top:1px solid var(--border);border-bottom:none;background:linear-gradient( to top, rgba(4,84,148,.20), rgba(4,84,148,.10) )}
+header h1{font-size:16px;margin:0;letter-spacing:.1em;font-weight:800}
+header .pill{display:flex;gap:10px;align-items:center;padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:rgba(214,226,237,.06)}
 
-    /* Main menu */
-    #menu-main .big-actions{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
-    #menu-main .title{font-size:clamp(28px,3vw,38px);font-weight:800;letter-spacing:.5px}
+#main{display:grid;grid-template-columns:1fr 330px;gap:16px;align-items:stretch;padding:12px;overflow:auto}
+@media (max-width:1000px){ #main{grid-template-columns:1fr} }
 
-    /* Toast */
-    .toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:#0d1734;border:1px solid #2b3c72;padding:10px 14px;border-radius:10px;display:none}
-    .toast.show{display:block}
+#game{display:grid;place-items:center}
+canvas{width:min(100%,100vh - 200px);height:min(100vw,100vh - 200px);max-width:100%;max-height:100%;background:radial-gradient( 800px 800px at 50% 50%, rgba(124,172,204,.06), rgba(4,84,148,.04) 40%, transparent 70% );border-radius:22px;box-shadow:0 0 0 1px var(--border), 0 20px 80px rgba(0,0,0,.4), inset 0 0 60px rgba(124,172,204,.06)}
 
-    /* Accessibility */
-    button, [role="button"], .btn{font-weight:600}
-  </style>
+#hud{position:fixed;top:60px;left:0;right:0;display:flex;justify-content:center;pointer-events:none}
+#hud .panel{pointer-events:auto;display:flex;gap:14px;align-items:center;padding:8px 12px;border-radius:12px;background:var(--panel);border:1px solid var(--border)}
+#hud .stat{min-width:118px}
+#hud .stat b{font-size:18px}
+#hud .bar{position:relative;width:140px;height:10px;border-radius:999px;overflow:hidden;border:1px solid rgba(214,226,237,.25);background:rgba(214,226,237,.08)}
+#hud .bar>span{position:absolute;left:0;top:0;bottom:0;width:0%;background:linear-gradient(90deg, #387db4, #7caccc);transition:width .15s ease}
+#hud .bar.ready{box-shadow:0 0 0 2px rgba(124,172,204,.35) inset, 0 0 16px rgba(124,172,204,.55)}
+#hud .bar.ready>span{background:linear-gradient(90deg, #7caccc, #e6f8ff)}
+@keyframes pulseReady{0%{transform:scale(1)}50%{transform:scale(1.03)}100%{transform:scale(1)}}
+#hud .bar.ready{animation:pulseReady 1.2s ease-in-out infinite}
+
+aside#help .card{position:sticky;top:12px;max-height:calc(100vh - 160px);overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px}
+
+/* Overlays */
+.overlay{position:fixed;inset:0;background:rgba(6,12,20,.60);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:40}
+.overlay.open{display:flex}
+.dialog{width:min(960px,96vw);max-height:86vh;overflow:auto;background:rgba(10,16,28,.95);border:1px solid var(--border);border-radius:16px;padding:16px}
+.row{display:flex;gap:8px;align-items:center}
+.grid{display:grid;gap:12px}
+
+/* Shop */
+#shop .card2{border:1px solid var(--border);border-radius:12px;padding:12px;background:rgba(214,226,237,.05)}
+.rarity{font-size:12px;padding:2px 6px;border-radius:999px;border:1px solid var(--border)}
+.rarity.C{background:rgba(214,226,237,.06)}
+.rarity.R{background:rgba(56,125,180,.22)}
+.rarity.E{background:rgba(255,209,102,.22)}
+.limited{border-color:rgba(255,209,102,.6)!important; box-shadow:0 0 0 2px rgba(255,209,102,.25) inset}
+.lock{margin-left:auto}
+.fav{margin-left:6px}
+.fav button{border-radius:999px;border:1px solid var(--border);background:rgba(214,226,237,.06);width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center}
+.fav button.active{color:#ffd166;box-shadow:0 0 0 2px rgba(255,209,102,.25) inset}
+#undoBar{position:sticky;bottom:0;display:none;gap:10px;align-items:center;justify-content:space-between;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:rgba(255,209,102,.12)}
+#undoBar.show{display:flex}
+#historyBox{margin-top:10px;border-top:1px dashed var(--border);padding-top:10px}
+#historyBox h4{margin:0 0 6px}
+#historyBox .hist{display:flex;flex-wrap:wrap;gap:6px}
+#historyBox .tag{padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:rgba(214,226,237,.06);font-size:12px}
+
+/* Missions */
+#missions .mission{border:1px solid var(--border);border-radius:12px;padding:12px;background:rgba(214,226,237,.05)}
+.meter{position:relative;height:10px;border:1px solid rgba(214,226,237,.25);border-radius:999px;background:rgba(214,226,237,.08);overflow:hidden}
+.meter>span{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#4a83b6,#7caccc);transition:width .2s ease}
+</style>
 </head>
 <body>
-  <div class="hud">
-    <!-- Top HUD -->
-    <div class="bar" id="hud-top">
-      <span>Menu • FPS: <span id="hud-fps">—</span> • Nível <b id="hud-level">1</b> · <b id="hud-xp">0</b>/<b id="hud-xp-next">500</b></span>
-      <span class="spacer"></span>
-      <button class="btn primary" id="btn-play">▶ Jogar</button>
-      <button class="btn" id="btn-pause" title="Pausar (P/Esc)">⏸ Pausar</button>
-      <button class="btn" id="btn-shop" title="Loja (S)">🛒 Loja</button>
-      <button class="btn" id="btn-lab" title="Laboratório">🧪 Laboratório</button>
-      <button class="btn" id="btn-settings" title="Configurações">⚙️</button>
-    </div>
-
-    <!-- Stats HUD -->
-    <div class="bar" id="hud-stats" style="position:absolute;bottom:0;right:0;left:0;border-top:1px solid var(--outline);">
-      <span>Pontuação: <b id="hud-score">0</b> ×<b id="hud-mult">1</b></span>
-      <span class="chip">Bits: <b id="hud-bits">0</b></span>
-      <span class="chip">Células: <b id="hud-cells">0</b></span>
-      <span class="chip">Fichas: <b id="hud-tokens">0</b></span>
-      <span class="chip">Recorde: <b id="hud-best">0</b></span>
-      <span class="chip">Vidas: <b id="hud-lives">3</b></span>
-      <span class="chip">Fase: <b id="hud-stage">1</b> • Tier <b id="hud-tier">I</b></span>
-    </div>
-  </div>
-
-  <!-- OVERLAYS / PANELS -->
-  <!-- Main Menu -->
-  <div class="overlay" id="menu-main" aria-hidden="true">
-    <div class="panel">
-      <header>
-        <div>
-          <div class="title">ORBITAL — Shield the Core <small>v7.2</small></div>
-          <div class="muted">Menu Principal</div>
-        </div>
-        <span class="spacer"></span>
-        <button class="btn" data-close="#menu-main">Fechar</button>
-      </header>
-      <div class="row" style="margin-bottom:8px">
-        <span>Nível <b id="mm-level">1</b></span>
-        <span class="chip">Recorde <b id="mm-best">0</b></span>
-      </div>
-      <div class="big-actions">
-        <button class="btn primary" id="mm-start">▶ Jogar</button>
-        <button class="btn" id="mm-lab">🧪 Laboratório</button>
-        <button class="btn" id="mm-settings">⚙️ Configurações</button>
-        <button class="btn" id="mm-credits">ℹ️ Créditos</button>
-      </div>
-      <div style="margin-top:14px" class="stack">
-        <details>
-          <summary><b>Pré‑partida</b> — escolha a dificuldade</summary>
-          <div class="row" style="margin-top:8px">
-            <label class="chip"><input type="radio" name="difficulty" value="casual"> Casual (+1 vida, spawns mais lentos, −10% pontos)</label>
-            <label class="chip"><input type="radio" name="difficulty" value="classico" checked> Clássico (padrão)</label>
-            <label class="chip"><input type="radio" name="difficulty" value="extremo"> Extremo (−1 vida, spawns mais rápidos, +20% pontos/bits)</label>
-          </div>
-        </details>
-        <small class="muted">Dica: instale como PWA para jogar offline.</small>
-      </div>
-    </div>
-  </div>
-
-  <!-- Pause Menu -->
-  <div class="overlay" id="menu-pause" aria-hidden="true">
-    <div class="panel">
-      <header>
-        <h2>⏸ Pausado</h2>
-        <span class="spacer"></span>
-        <button class="btn" data-close="#menu-pause">Fechar</button>
-      </header>
-      <div class="grid">
-        <button class="btn success" id="pause-resume">▶ Retomar</button>
-        <button class="btn" id="pause-shop">🛒 Loja</button>
-        <button class="btn" id="pause-lab">🧪 Laboratório</button>
-        <button class="btn" id="pause-settings">⚙️ Configurações</button>
-        <button class="btn warn" id="pause-restart">🔁 Recomeçar</button>
-        <button class="btn" id="pause-main">🏠 Menu Principal</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Settings -->
-  <div class="overlay" id="menu-settings" aria-hidden="true">
-    <div class="panel">
-      <header>
-        <h2>⚙️ Configurações</h2>
-        <span class="spacer"></span>
-        <button class="btn" data-close="#menu-settings">Fechar</button>
-      </header>
-      <div class="stack">
-        <div class="row">
-          <label>Volume:</label>
-          <input type="range" id="cfg-volume" min="0" max="1" step="0.01"/>
-        </div>
-        <label><input type="checkbox" id="cfg-reduce-motion"> Reduzir movimento</label>
-        <label><input type="checkbox" id="cfg-shop-confirm"> Confirmar compras na Loja</label>
-        <label><input type="checkbox" id="cfg-pause-bg"> Pausar ao trocar de aba</label>
-        <div class="row">
-          <button class="btn" id="cfg-reset-run">Reiniciar Partida</button>
-          <button class="btn" id="cfg-wipe">Zerar Progresso</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Shop -->
-  <div class="overlay" id="menu-shop" aria-hidden="true">
-    <div class="panel">
-      <header>
-        <h2>🛒 Loja <small>Tier <span id="shop-tier">I</span></small></h2>
-        <span class="spacer"></span>
-        <div class="chip">Bits: <b id="shop-bits">0</b></div>
-        <div class="chip">Fichas: <b id="shop-tokens">0</b></div>
-        <button class="btn" id="shop-reroll">🔃 Rerrolar ( <span id="shop-reroll-cost">3</span> )</button>
-        <button class="btn" data-close="#menu-shop">Fechar</button>
-      </header>
-      <p class="muted">Rerrolar consome <b>Fichas</b> primeiro; sem fichas, usa <b>bits</b>. Novas ofertas a cada <b>2 fases</b> e ao derrotar <b>boss</b>.</p>
-      <div class="grid" id="shop-grid"></div>
-    </div>
-  </div>
-
-  <!-- Lab -->
-  <div class="overlay" id="menu-lab" aria-hidden="true">
-    <div class="panel">
-      <header>
-        <h2>🧪 Laboratório</h2>
-        <span class="spacer"></span>
-        <div class="chip">Células: <b id="lab-cells">0</b></div>
-        <button class="btn" data-close="#menu-lab">Fechar</button>
-      </header>
-      <div class="grid" id="lab-grid"></div>
-    </div>
-  </div>
-
-  <!-- Credits -->
-  <div class="overlay" id="menu-credits" aria-hidden="true">
-    <div class="panel">
-      <header>
-        <h2>ℹ️ Créditos</h2>
-        <span class="spacer"></span>
-        <button class="btn" data-close="#menu-credits">Fechar</button>
-      </header>
-      <p>Design e código base — Você. Assistência de balanceamento e UX — Copilot.</p>
-    </div>
-  </div>
-
-  <div class="toast" id="toast"></div>
-
-  <script>
-  // ============================
-  // Estado do jogo + Balance V7.2 (custos reduzidos)
-  // ============================
-  const Save = {
-    load(){ try{ return JSON.parse(localStorage.getItem('orbital-save-v72'))||{} }catch{ return {} } },
-    save(data){ localStorage.setItem('orbital-save-v72', JSON.stringify(data)) }
-  }
-
-  const Game = {
-    running:false, paused:false,
-    score:0, mult:1, bits:0, cells:0, tokens:0,
-    level:1, xp:0, best:0, lives:3, stage:1, tier:1,
-    difficulty:'classico',
-    inventory: { skills:{}, relics:{}, fusions:[] },
-    cfg: { volume:0.7, reduceMotion:false, shopConfirm:false, pauseOnBlur:true },
-  }
-  Object.assign(Game, Save.load());
-
-  // ==== Balance (mais barato) ====
-  const Balance = {
-    // XP para upar (reduzido): antes ~1000 base, 1.35; agora 500 base, 1.25
-    xpBase:500, xpGrowth:1.25,
-    xpFor(level){ return Math.floor(this.xpBase * Math.pow(this.xpGrowth, level-1)) },
-
-    // Habilidades: custo base reduzido (de ~100 para 35)
-    skillBase:35, skillGrowth:1.35,
-    skillCost(lvl){ return Math.round(this.skillBase * Math.pow(this.skillGrowth, Math.max(0,lvl-1))) },
-
-    // Fusões: custo mais baixo e escala mais suave
-    fusionBase:120, fusionGrowth:1.22,
-    fusionCost(count){ return Math.round(this.fusionBase * Math.pow(this.fusionGrowth, Math.max(0,count))) },
-
-    // Reroll: 3 (antes 10) e usa tokens primeiro
-    rerollCost:3,
-  }
-
-  // ===== Util =====
-  const $ = sel => document.querySelector(sel);
-  const $$ = sel => Array.from(document.querySelectorAll(sel));
-  function fmt(n){ return (n|0).toLocaleString('pt-BR') }
-  function toast(msg,ms=1600){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),ms) }
-
-  function updateHUD(){
-    $('#hud-level').textContent = Game.level;
-    $('#hud-xp').textContent = Game.xp;
-    $('#hud-xp-next').textContent = Balance.xpFor(Game.level);
-    $('#hud-score').textContent = fmt(Game.score);
-    $('#hud-mult').textContent = Game.mult;
-    $('#hud-bits').textContent = fmt(Game.bits);
-    $('#hud-cells').textContent = fmt(Game.cells);
-    $('#hud-tokens').textContent = fmt(Game.tokens);
-    $('#hud-best').textContent = fmt(Game.best||0);
-    $('#hud-lives').textContent = Game.lives;
-    $('#hud-stage').textContent = Game.stage;
-    $('#hud-tier').textContent = ['I','II','III','IV','V'][Game.tier-1]||Game.tier;
-
-    // Mirror to menus
-    $('#shop-bits').textContent = fmt(Game.bits);
-    $('#shop-tokens').textContent = fmt(Game.tokens);
-    $('#lab-cells').textContent = fmt(Game.cells);
-
-    $('#mm-level').textContent = Game.level;
-    $('#mm-best').textContent = fmt(Game.best||0);
-
-    $('#shop-tier').textContent = ['I','II','III','IV','V'][Game.tier-1]||Game.tier;
-    $('#shop-reroll-cost').textContent = Balance.rerollCost;
-  }
-
-  // ====== Panels ======
-  const Panels = {
-    open(id){ this.closeAll(); const el=$(id); if(!el) return; el.classList.add('show'); el.setAttribute('aria-hidden','false'); },
-    close(id){ const el=$(id); if(!el) return; el.classList.remove('show'); el.setAttribute('aria-hidden','true'); },
-    closeAll(){ $$('.overlay').forEach(o=>{o.classList.remove('show'); o.setAttribute('aria-hidden','true')}) }
-  }
-
-  // ====== Game flow ======
-  function startRun(){
-    Game.running = true; Game.paused=false; Panels.closeAll(); toast('Partida iniciada!');
-    // TODO: chamar engineExterna.start(Game.difficulty)
-  }
-  function pause(){ if(!Game.running) return; Game.paused=true; Panels.open('#menu-pause') }
-  function resume(){ Game.paused=false; Panels.close('#menu-pause'); toast('Retomado') }
-  function restart(){
-    Game.score=0; Game.mult=1; Game.lives=(Game.difficulty==='casual'?4:(Game.difficulty==='extremo'?2:3)); Game.stage=1; Game.tier=1; Game.xp=0; Game.level=1;
-    Panels.closeAll(); startRun(); updateHUD();
-  }
-  function backToMain(){ Panels.open('#menu-main') }
-
-  // ====== Shop ======
-  const SHOP_POOL = [
-    { id:'atk', name:'Ataque+', type:'skill', desc:'+10% dano', lvl:0 },
-    { id:'spd', name:'Velocidade+', type:'skill', desc:'+10% velocidade', lvl:0 },
-    { id:'rng', name:'Alcance+', type:'skill', desc:'+12% alcance', lvl:0 },
-    { id:'core', name:'Blindagem do Núcleo', type:'fusion', desc:'Fusão defensiva', count:0 },
-    { id:'nova', name:'Nova Instantânea', type:'relic', desc:'Gera uma nova ao iniciar fase' },
-  ]
-
-  function rollShop(){
-    const picks = [];
-    const pool = [...SHOP_POOL];
-    while(picks.length<6 && pool.length){
-      const i = (Math.random()*pool.length)|0; picks.push(pool.splice(i,1)[0]);
-    }
-    return picks;
-  }
-
-  function skillLevel(id){ return Game.inventory.skills[id]||0 }
-  function fusionCount(id){ return Game.inventory.fusions.filter(f=>f===id).length }
-
-  function cardFor(item){
-    let price=0, buyLabel='Comprar';
-    if(item.type==='skill'){
-      const lvl = skillLevel(item.id)+1;
-      price = Balance.skillCost(lvl);
-      buyLabel = `↑ Habilidade (Nível ${lvl})`;
-    }else if(item.type==='fusion'){
-      const count = fusionCount(item.id);
-      price = Balance.fusionCost(count);
-      buyLabel = `Fusão (#${count+1})`;
-    }else{
-      price = Math.max(20, (10 + Math.random()*40)|0);
-    }
-
-    const card = document.createElement('div'); card.className='card stack';
-    card.innerHTML = `
-      <div>
-        <div style="font-weight:700">${item.name}</div>
-        <div class="muted">${item.desc||''}</div>
+  <div id="wrap">
+    <header>
+      <h1>ORBITAL — Shield the Core <small style="opacity:.6">v7.3</small></h1>
+      <div class="pill">
+        <span id="status">Menu</span>
+        <span style="opacity:.5">•</span>
+        <span id="fps">FPS: —</span>
+        <span style="opacity:.5">•</span>
+        <span class="badge">Nível <b id="lvl">1</b> · <span id="xpBar">0/1000</span></span>
       </div>
       <div class="row">
-        <span class="price">Preço:
-          <span class="chip">💠 <b>${price}</b></span>
-        </span>
-        <span class="spacer"></span>
-        <button class="btn" data-id="${item.id}" data-type="${item.type}" data-price="${price}">${buyLabel}</button>
-      </div>`;
-    return card;
-  }
+        <button id="btnStart">▶ Jogar</button>
+        <button id="btnPause" title="P">⏸ Pausar</button>
+        <button id="btnShop" title="S">🛒 Loja</button>
+        <button id="btnMissions" title="Missões">🎯 Missões</button>
+        <button id="btnSettings" title="Configurações">⚙️</button>
+        <button id="btnScreenshot" title="K">📸</button>
+        <button id="btnMute" title="M">🔊</button>
+        <button id="btnLab" title="Upgrades">🧪</button>
+      </div>
+    </header>
 
-  function openShop(){
-    const grid = $('#shop-grid'); grid.innerHTML='';
-    const items = rollShop(); items.forEach(i=> grid.appendChild(cardFor(i)) );
-    Panels.open('#menu-shop'); updateHUD();
-  }
-
-  function buyFromShop(btn){
-    const id = btn.dataset.id; const type = btn.dataset.type; const price = +btn.dataset.price;
-    // paga com tokens primeiro
-    let tokensToUse = Math.min(Game.tokens, price);
-    let remaining = price - tokensToUse;
-    if(remaining>Game.bits){ toast('Bits insuficientes!'); return }
-
-    const doBuy = ()=>{
-      Game.tokens -= tokensToUse; Game.bits -= remaining; updateHUD();
-      if(type==='skill'){ Game.inventory.skills[id] = (Game.inventory.skills[id]||0)+1; toast('Habilidade melhorada!') }
-      else if(type==='fusion'){ Game.inventory.fusions.push(id); toast('Fusão criada!') }
-      else { Game.inventory.relics[id]=true; toast('Relíquia obtida!') }
-      Save.save(Game); openShop(); // rerender
-    }
-
-    if(Game.cfg.shopConfirm){ if(confirm(`Confirmar compra por ${price}? (tokens usados: ${tokensToUse})`)) doBuy(); }
-    else doBuy();
-  }
-
-  function rerollShop(){
-    const cost = Balance.rerollCost;
-    if(Game.tokens>0){ Game.tokens = Math.max(0, Game.tokens-cost); }
-    else if(Game.bits>=cost){ Game.bits -= cost; }
-    else { toast('Sem fichas/bits para rerrolar.'); return }
-    openShop();
-  }
-
-  // ====== Lab ======
-  const LAB_POOL = [
-    { id:'xp1', name:'Catalisador XP I', desc:'+10% XP ganho', cost: 40 },
-    { id:'hp1', name:'Bio Aumento I', desc:'+1 vida permanente', cost: 120 },
-    { id:'bits1', name:'Otimizador de Bits', desc:'+12% bits ganhos', cost: 80 },
-  ]
-
-  function openLab(){
-    const grid = $('#lab-grid'); grid.innerHTML='';
-    LAB_POOL.forEach(it=>{
-      const card = document.createElement('div'); card.className='card stack';
-      card.innerHTML = `
-        <div>
-          <div style="font-weight:700">${it.name}</div>
-          <div class="muted">${it.desc}</div>
+    <div id="hud">
+      <div class="panel">
+        <div class="stat">Pontuação: <b id="score">0</b> <small id="mult" class="badge">x1</small></div>
+        <div class="stat">Bits: <b id="bits">0</b></div>
+        <div class="stat">Células: <b id="cells">0</b></div>
+        <div class="stat">Recorde: <b id="best">0</b></div>
+        <div class="stat">Vidas: <b id="lives">3</b></div>
+        <div class="stat">Fase: <b id="stage">1</b> <span class="badge">Tier <b id="tierTag">I</b></span></div>
+        <div class="stat">Nova:
+          <div id="novaBar" class="bar"><span></span></div>
         </div>
-        <div class="row">
-          <span class="price">Custo: <span class="chip">🧬 <b>${it.cost}</b></span></span>
-          <span class="spacer"></span>
-          <button class="btn" data-id="${it.id}" data-cost="${it.cost}">Comprar</button>
-        </div>`;
-      grid.appendChild(card);
-    })
-    Panels.open('#menu-lab'); updateHUD();
+      </div>
+    </div>
+
+    <main id="main">
+      <section id="game" aria-label="Campo de jogo">
+        <canvas id="cvs" width="1024" height="1024"></canvas>
+      </section>
+      <aside id="help">
+        <div class="card">
+          <h2>Fluxo v7.3</h2>
+          <ul>
+            <li>Loja com <b>favoritos</b> (⭐), <b>histórico</b> de vistas/compras e <b>ofertas limitadas</b>.</li>
+            <li><b>Missões diárias</b> com recompensas de <b>Bits</b>, <b>Fichas</b> e <b>Células</b>.</li>
+            <li><b>Barra da Nova</b> no HUD com animação quando pronta.</li>
+            <li>Economia ajustada: recompensas por <b>fase</b> e <b>boss</b> mais previsíveis.</li>
+          </ul>
+          <p class="muted">Controles: Espaço (iniciar), P/Esc (pausa), M (mudo), K (screenshot), S (Loja), R (Rerrolar), Shift (Nova).</p>
+        </div>
+      </aside>
+    </main>
+
+    <footer>
+      <div class="muted">Desktop: <span class="kbd">Mouse</span> • <span class="kbd">←/→</span>/<span class="kbd">A/D</span> • <span class="kbd">Espaço</span> • <span class="kbd">P/Esc</span> • <span class="kbd">S</span> Loja • <span class="kbd">R</span> Rerrolar • <span class="kbd">Shift</span> Nova</div>
+      <div class="muted">Mobile: toque/arraste • Instale como PWA (menu do navegador)</div>
+    </footer>
+  </div>
+
+  <!-- MENU PRINCIPAL -->
+  <div id="mainMenu" class="overlay open" role="dialog" aria-modal="true" aria-label="Menu Principal">
+    <div class="dialog">
+      <div class="row" style="justify-content:space-between">
+        <h3>Menu Principal</h3>
+        <div class="row"><span class="badge">Nível <b id="lvlMenu">1</b></span><span class="badge">Recorde <b id="bestMenu">0</b></span></div>
+      </div>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-top:8px">
+        <button id="menuPlay">▶ Jogar</button>
+        <button id="menuLab">🧪 Laboratório</button>
+        <button id="menuMissions">🎯 Missões</button>
+        <button id="menuSettings">⚙️ Configurações</button>
+        <button id="menuCredits">ℹ️ Créditos</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRÉ‑PARTIDA -->
+  <div id="preRun" class="overlay" role="dialog" aria-modal="true" aria-label="Pré‑Partida">
+    <div class="dialog">
+      <h3>Pré‑Partida</h3>
+      <p>Escolha a dificuldade e ajuste as opções de jogo.</p>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin:8px 0">
+        <label class="card2" style="padding:10px;border:1px solid var(--border);border-radius:12px;background:rgba(214,226,237,.05)">
+          <input type="radio" name="diff" value="casual" checked> <b>Casual</b>
+          <div class="muted">+1 vida, spawns mais lentos, -10% pontos.</div>
+        </label>
+        <label class="card2" style="padding:10px;border:1px solid var(--border);border-radius:12px;background:rgba(214,226,237,.05)">
+          <input type="radio" name="diff" value="classic"> <b>Clássico</b>
+          <div class="muted">Experiência padrão.</div>
+        </label>
+        <label class="card2" style="padding:10px;border:1px solid var(--border);border-radius:12px;background:rgba(214,226,237,.05)">
+          <input type="radio" name="diff" value="extreme"> <b>Extremo</b>
+          <div class="muted">-1 vida, spawns mais rápidos, +20% pontos/bits.</div>
+        </label>
+        <label class="card2" style="padding:10px;border:1px solid var(--border);border-radius:12px;background:rgba(214,226,237,.05)">
+          <input type="radio" name="diff" value="custom"> <b>Custom</b>
+          <div class="muted">Defina suas próprias regras.</div>
+        </label>
+      </div>
+      <div id="customPanel" style="display:none;margin:8px 0 2px;padding:10px;border:1px dashed var(--border);border-radius:12px">
+        <div class="row" style="gap:12px;flex-wrap:wrap">
+          <label>Vidas iniciais: <input id="customLife" type="range" min="1" max="8" step="1"><span class="badge" id="lblLife">3</span></label>
+          <label>Ritmo de spawn: <input id="customSpawn" type="range" min="0.7" max="1.3" step="0.01"><span class="badge" id="lblSpawn">1.00×</span></label>
+          <label>Mult. Pontos: <input id="customScore" type="range" min="0.8" max="1.3" step="0.01"><span class="badge" id="lblScore">1.00×</span></label>
+          <label>Mult. Bits: <input id="customBits" type="range" min="0.8" max="1.3" step="0.01"><span class="badge" id="lblBits">1.00×</span></label>
+        </div>
+      </div>
+      <div class="row" style="justify-content:flex-end;margin-top:8px">
+        <button id="preRunCancel">Cancelar</button>
+        <button id="preRunStart">Iniciar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAUSA -->
+  <div id="pauseMenu" class="overlay" role="dialog" aria-modal="true" aria-label="Pausa">
+    <div class="dialog">
+      <h3>Pausado</h3>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:8px">
+        <button id="pmResume">▶ Retomar</button>
+        <button id="pmShop">🛒 Loja</button>
+        <button id="pmLab">🧪 Laboratório</button>
+        <button id="pmMissions">🎯 Missões</button>
+        <button id="pmSettings">⚙️ Configurações</button>
+        <button id="pmRestart">🔁 Recomeçar</button>
+        <button id="pmMenu">🏠 Menu Principal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIGURAÇÕES -->
+  <div id="settings" class="overlay" role="dialog" aria-modal="true" aria-label="Configurações">
+    <div class="dialog">
+      <div class="row" style="justify-content:space-between">
+        <h3>Configurações</h3>
+        <button id="btnCloseSettings">Fechar</button>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr;gap:10px">
+        <div class="row"><label style="width:200px">Volume:</label><input id="volRange" type="range" min="0" max="1" step="0.01"></div>
+        <label><input id="chkReduce" type="checkbox"> Reduzir movimento</label>
+        <label><input id="chkConfirmBuy" type="checkbox" checked> Confirmar compras na Loja</label>
+        <label><input id="chkFavsFirst" type="checkbox"> Mostrar favoritos primeiro na Loja</label>
+        <label><input id="chkAutoPause" type="checkbox" checked> Pausar ao trocar de aba</label>
+        <div class="row" style="gap:12px;margin-top:6px">
+          <button id="btnResetRun">Reiniciar Partida</button>
+          <button id="btnResetProgress" style="border-color:var(--danger);color:var(--danger)">Zerar Progresso</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LABORATÓRIO -->
+  <div id="lab" class="overlay" role="dialog" aria-modal="true" aria-label="Laboratório">
+    <div class="dialog">
+      <div class="row" style="justify-content:space-between">
+        <h3>🧪 Laboratório</h3>
+        <div class="row">Células: <b id="cellsLab">0</b> <button id="btnCloseLab">Fechar</button></div>
+      </div>
+      <div id="upgradesGrid" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))"></div>
+    </div>
+  </div>
+
+  <!-- LOJA -->
+  <div id="shop" class="overlay" role="dialog" aria-modal="true" aria-label="Loja">
+    <div class="dialog">
+      <div class="row" style="justify-content:space-between">
+        <h3>🛒 Loja <small class="badge" id="shopTier">Tier I</small></h3>
+        <div class="row" style="gap:10px">
+          <span>Bits: <b id="bitsShop">0</b></span>
+          <span class="badge">Fichas: <b id="tokens">0</b></span>
+          <button id="btnCloseShop">Fechar</button>
+        </div>
+      </div>
+      <div class="row" style="justify-content:space-between;margin:6px 0">
+        <div class="row" style="gap:8px;flex-wrap:wrap">
+          <button id="btnReroll">🔃 Rerrolar (<span id="rerollCost">10</span> ⬡)</button>
+          <span class="muted">Rerrolar consome <b>Fichas</b> primeiro; sem fichas, usa bits.</span>
+          <label class="row" style="gap:6px"><input type="checkbox" id="chkShowHistory"> Mostrar histórico</label>
+        </div>
+        <div class="muted">Novas ofertas a cada <b>2 fases</b> e ao derrotar <b>boss</b>.</div>
+      </div>
+      <div id="shopGrid" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))"></div>
+      <div id="historyBox" style="display:none">
+        <h4>Histórico</h4>
+        <div class="row" style="gap:16px;align-items:flex-start">
+          <div style="flex:1">
+            <div class="muted">Vistos recentemente</div>
+            <div class="hist" id="histViewed"></div>
+          </div>
+          <div style="flex:1">
+            <div class="muted">Comprados recentemente</div>
+            <div class="hist" id="histBought"></div>
+          </div>
+          <div style="flex:1">
+            <div class="muted">Favoritos</div>
+            <div class="hist" id="histFavs"></div>
+          </div>
+        </div>
+      </div>
+      <div id="undoBar" class="row"><div id="undoMsg">Compra realizada.</div><div class="row" style="gap:8px"><span class="badge" id="undoTimer">3.0s</span><button id="btnUndo">Desfazer</button></div></div>
+    </div>
+  </div>
+
+  <!-- MISSÕES -->
+  <div id="missions" class="overlay" role="dialog" aria-modal="true" aria-label="Missões diárias">
+    <div class="dialog">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h3>🎯 Missões diárias</h3>
+        <button id="btnCloseMissions">Fechar</button>
+      </div>
+      <div class="grid" id="missionsGrid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))"></div>
+      <div class="muted" style="margin-top:8px">Missões resetam diariamente.</div>
+    </div>
+  </div>
+
+  <!-- RESUMO DA PARTIDA -->
+  <div id="runSummary" class="overlay" role="dialog" aria-modal="true" aria-label="Resumo da Partida">
+    <div class="dialog">
+      <h3>🏁 Fim da Partida</h3>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+        <div class="card2" style="padding:12px;border:1px solid var(--border);border-radius:12px">
+          <h4>Resultados</h4>
+          <div class="row" style="gap:12px;flex-wrap:wrap">
+            <span class="badge">Pontos: <b id="sumScore">0</b></span>
+            <span class="badge">Fase: <b id="sumStage">1</b></span>
+            <span class="badge">Bits ganhados: <b id="sumBits">0</b></span>
+            <span class="badge">Células: <b id="sumCells">0</b></span>
+          </div>
+          <div id="sumRecord" class="badge" style="display:none;margin-top:8px">🏆 Novo recorde!</div>
+        </div>
+      </div>
+      <div class="row" style="justify-content:flex-end;margin-top:10px;gap:8px">
+        <button id="sumRestart">🔁 Recomeçar</button>
+        <button id="sumShop">🛒 Loja</button>
+        <button id="sumMenu">🏠 Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+// ===== Util =====
+const TAU=Math.PI*2; const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)); const lerp=(a,b,t)=>a+(b-a)*t; const angleNorm=a=>{a%=TAU; if(a<0)a+=TAU; return a}; const angleDiff=(a,b)=>{let d=(a-b+Math.PI)%(TAU)-Math.PI; return d<-Math.PI?d+TAU:d};
+const qs=s=>document.querySelector(s); const qsa=s=>[...document.querySelectorAll(s)];
+
+// PWA register
+if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')){ navigator.serviceWorker.register('./sw.js'); }
+
+// Refs
+const cvs=qs('#cvs'), ctx=cvs.getContext('2d');
+const scoreEl=qs('#score'), bestEl=qs('#best'), livesEl=qs('#lives'), stageEl=qs('#stage'), fpsEl=qs('#fps'), statusEl=qs('#status');
+const bitsEl=qs('#bits'), cellsEl=qs('#cells'), lvlEl=qs('#lvl'), xpBarEl=qs('#xpBar');
+const tierTag=qs('#tierTag');
+const btnStart=qs('#btnStart'), btnPause=qs('#btnPause'), btnShop=qs('#btnShop'), btnSettings=qs('#btnSettings'), btnScreenshot=qs('#btnScreenshot'), btnMute=qs('#btnMute'), btnLab=qs('#btnLab'), btnMissions=qs('#btnMissions');
+const mainMenu=qs('#mainMenu'), lvlMenu=qs('#lvlMenu'), bestMenu=qs('#bestMenu');
+const menuPlay=qs('#menuPlay'), menuLab=qs('#menuLab'), menuSettings=qs('#menuSettings'), menuMissions=qs('#menuMissions');
+const preRun=qs('#preRun'), preRunStart=qs('#preRunStart'), preRunCancel=qs('#preRunCancel');
+const customPanel=qs('#customPanel');
+const customLife=qs('#customLife'), customSpawn=qs('#customSpawn'), customScore=qs('#customScore'), customBits=qs('#customBits');
+const lblLife=qs('#lblLife'), lblSpawn=qs('#lblSpawn'), lblScore=qs('#lblScore'), lblBits=qs('#lblBits');
+const pauseMenu=qs('#pauseMenu'), pmResume=qs('#pmResume'), pmShop=qs('#pmShop'), pmLab=qs('#pmLab'), pmSettings=qs('#pmSettings'), pmRestart=qs('#pmRestart'), pmMenu=qs('#pmMenu'), pmMissions=qs('#pmMissions');
+const settings=qs('#settings'), btnCloseSettings=qs('#btnCloseSettings');
+const volRange=qs('#volRange'), chkReduce=qs('#chkReduce'), chkConfirmBuy=qs('#chkConfirmBuy'), chkFavsFirst=qs('#chkFavsFirst'), chkAutoPause=qs('#chkAutoPause');
+const lab=qs('#lab'), upgradesGrid=qs('#upgradesGrid'), btnCloseLab=qs('#btnCloseLab'), cellsLabEl=qs('#cellsLab');
+const shop=qs('#shop'), shopGrid=qs('#shopGrid'), btnCloseShop=qs('#btnCloseShop'), bitsShopEl=qs('#bitsShop'), shopTier=qs('#shopTier');
+const rerollCostEl=qs('#rerollCost'), btnReroll=qs('#btnReroll'), tokensEl=qs('#tokens');
+const historyBox=qs('#historyBox'), chkShowHistory=qs('#chkShowHistory'), histViewed=qs('#histViewed'), histBought=qs('#histBought'), histFavs=qs('#histFavs');
+const undoBar=qs('#undoBar'), undoMsg=qs('#undoMsg'), undoTimer=qs('#undoTimer'), btnUndo=qs('#btnUndo');
+const toastEl=qs('#toast');
+const missions=qs('#missions'), missionsGrid=qs('#missionsGrid'), btnCloseMissions=qs('#btnCloseMissions');
+const runSummary=qs('#runSummary'), sumScore=qs('#sumScore'), sumStage=qs('#sumStage'), sumBits=qs('#sumBits'), sumCells=qs('#sumCells'), sumRecord=qs('#sumRecord');
+const sumRestart=qs('#sumRestart'), sumShop=qs('#sumShop'), sumMenu=qs('#sumMenu');
+
+// Persistência
+const loadJSON=(k,def)=>{ try{ return JSON.parse(localStorage.getItem(k)) ?? def }catch{ return def } };
+const saveJSON=(k,v)=>localStorage.setItem(k, JSON.stringify(v));
+const BEST_KEY='orbital_highscore'; const VOL_KEY='orbital_volume'; const LS_KEY='orbital_lifetime_v7_3'; const UPG_KEYS='orbital_upgrades_v7_3'; const CELLS_KEY='orbital_cells_v7_3'; const PREF_KEY='orbital_prefs_v7_3'; const SHOP_HIST_KEY='orbital_shop_history_v7_3'; const DAILY_KEY='orbital_daily_v7_3'; const BANK_KEY='orbital_bank_v7_3';
+
+// Prefs
+const prefs = Object.assign({ volume:Number(localStorage.getItem(VOL_KEY)||0.7), reduce:false, confirmBuy:true, favsFirst:false, autoPause:true, defaultDiff:'classic', custom:{life:3,spawn:1.0,score:1.0,bits:1.0} }, loadJSON(PREF_KEY, {}));
+volRange.value = String(prefs.volume); chkReduce.checked=prefs.reduce; chkConfirmBuy.checked=prefs.confirmBuy; chkFavsFirst.checked=prefs.favsFirst; chkAutoPause.checked=prefs.autoPause;
+customLife.value=prefs.custom.life; customSpawn.value=prefs.custom.spawn; customScore.value=prefs.custom.score; customBits.value=prefs.custom.bits;
+lblLife.textContent=String(prefs.custom.life); lblSpawn.textContent=(+prefs.custom.spawn).toFixed(2)+'×'; lblScore.textContent=(+prefs.custom.score).toFixed(2)+'×'; lblBits.textContent=(+prefs.custom.bits).toFixed(2)+'×';
+
+const bank = Object.assign({ pendingBits:0 }, loadJSON(BANK_KEY, {}));
+
+// XP / Nível
+function levelXP(n){ return 1000 + 400*n; }
+function computeLevel(total){ let lvl=0, need=levelXP(0), acc=total; while(acc>=need){ acc-=need; lvl++; need=levelXP(lvl);} return {lvl, cur:acc, need}; }
+
+// Estado
+const state={
+  running:false, paused:false, gameOver:false,
+  t:0, dt:0, timeScale:1,
+  width:cvs.width, height:cvs.height, center:{x:cvs.width/2,y:cvs.height/2},
+  rBase:Math.min(cvs.width,cvs.height)/2*0.68, rShield:Math.min(cvs.width,cvs.height)/2*0.36, rCore:Math.min(cvs.width,cvs.height)/2*0.09,
+  shieldAngle:0, shieldWidth:TAU*0.07, shieldTargetWidth:TAU*0.07, shieldSpeed:2.6, parryWindowRatio:0.30,
+  inputs:{left:false,right:false,mouseAngle:null},
+  threats:[], particles:[],
+  score:0, best:Number(localStorage.getItem(BEST_KEY)||0), lifetime:Number(localStorage.getItem(LS_KEY)||0),
+  combo:0, lives:3, stage:1, spawnTimer:0, spawnInterval:0.8, difficulty:0,
+  muted:false, volume:prefs.volume,
+  bits:0, cells:Number(localStorage.getItem(CELLS_KEY)||0),
+  upgrades: loadJSON(UPG_KEYS, { width:0, speed:0, timelens:0, life:0, novaCD:0 }),
+  novaCooldownBase:12, novaCooldown:0,
+  shopOffers:[], nextShopStage:2, shopLocks:[false,false,false], rerollCost:10,
+  rerollTokens:0,
+  // Loja histórico/favs/limitada/undo
+  shopLimited:null, shopSession:0,
+  undo:null, undoHandles:[],
+  shopHist: Object.assign({ viewed:[], bought:[], favs:{} }, loadJSON(SHOP_HIST_KEY, { viewed:[], bought:[], favs:{} })),
+  // economia
+  bossesDefeated:0, bitsRunGained:0,
+  // temporários de poder
+  scoreMultTemp:1.0, scoreMultTempUntil:0, widthBoostUntil:0, slowUntil:0, autoAimUntil:0, grace:0, bitsBonus:0, bitsBonusUntil:0, echoRadial:0, magnetUntil:0,
+  boss:null, bossActive:false,
+  // dificuldade
+  diffMode:'classic', diffMods:{ casual:{life:+1, spawn:1.12, score:0.9, bits:1.0}, classic:{life:0, spawn:1.0, score:1.0, bits:1.0}, extreme:{life:-1, spawn:0.88, score:1.2, bits:1.2} }, custom:Object.assign({}, prefs.custom)
+};
+
+function updateLevelUI(){ const {lvl,cur,need}=computeLevel(state.lifetime); lvlEl.textContent=String(lvl); xpBarEl.textContent=`${cur}/${need}`; lvlMenu.textContent=String(lvl); }
+updateLevelUI(); bestEl.textContent=state.best; bestMenu.textContent=state.best; cellsEl.textContent=state.cells;
+
+// Áudio
+let audioCtx=null; function ensureAudio(){ if(!audioCtx){ const AC=window.AudioContext||window.webkitAudioContext; audioCtx=AC?new AC():null; } }
+function beep(type='ping', gain=0.02){ if(state.muted) return; ensureAudio(); if(!audioCtx) return; const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='sine'; const now=audioCtx.currentTime; const map={ ping:[880,2200,0.06], hit:[220,70,0.12], power:[330,1320,0.2], nova:[150,40,0.35], perfect:[1200,2200,0.08], boss:[500,200,0.3], ui:[660,880,0.05] }[type]||[880,2200,0.06]; o.frequency.setValueAtTime(map[0],now); o.frequency.exponentialRampToValueAtTime(map[1],now+map[2]); g.gain.setValueAtTime(Math.max(0.0001, gain*state.volume),now); g.gain.exponentialRampToValueAtTime(0.0001,now+Math.max(0.25,map[2])); o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(now+0.4); }
+
+// ===== Controles =====
+function updateMouseAngle(xp,yp){ const r=cvs.getBoundingClientRect(); const x=(xp-r.left)*(cvs.width/r.width); const y=(yp-r.top)*(cvs.height/r.height); state.inputs.mouseAngle=Math.atan2(y-state.center.y,x-state.center.x); }
+cvs.addEventListener('mousemove', e=>updateMouseAngle(e.clientX,e.clientY));
+cvs.addEventListener('touchstart', e=>{ const t=e.touches[0]; updateMouseAngle(t.clientX,t.clientY); });
+cvs.addEventListener('touchmove',  e=>{ const t=e.touches[0]; updateMouseAngle(t.clientX,t.clientY); });
+
+window.addEventListener('keydown', e=>{
+  if(e.code==='Escape'){ togglePauseMenu(); }
+  if(e.code==='ArrowLeft'||e.code==='KeyA') state.inputs.left=true;
+  if(e.code==='ArrowRight'||e.code==='KeyD') state.inputs.right=true;
+  if(e.code==='Space'){ if(mainMenu.classList.contains('open')) openPreRun(); else if(!state.running||state.gameOver){ startGame(); } }
+  if(e.code==='KeyP'){ togglePauseMenu(); }
+  if(e.code==='KeyM'){ toggleMute(); }
+  if(e.code==='KeyS'){ toggleShop(); }
+  if(e.code==='KeyK'){ saveScreenshot(); }
+  if(e.code==='ShiftLeft'||e.code==='ShiftRight'){ activateNova(); }
+  if(e.code==='KeyR'){ if(shop.classList.contains('open')) rerollShop(); }
+});
+window.addEventListener('keyup', e=>{ if(e.code==='ArrowLeft'||e.code==='KeyA') state.inputs.left=false; if(e.code==='ArrowRight'||e.code==='KeyD') state.inputs.right=false; });
+
+// UI binds
+btnStart.onclick=()=>{ if(mainMenu.classList.contains('open')) openPreRun(); else if(!state.running||state.gameOver) startGame(); };
+btnPause.onclick=()=>togglePauseMenu(); btnSettings.onclick=()=>openSettings(); btnLab.onclick=()=>openLab(); btnShop.onclick=()=>toggleShop(); btnScreenshot.onclick=saveScreenshot; btnMute.onclick=toggleMute; btnMissions.onclick=()=>openMissions();
+menuPlay.onclick=openPreRun; menuLab.onclick=()=>{ mainMenu.classList.remove('open'); openLab(); }; menuSettings.onclick=()=>{ mainMenu.classList.remove('open'); openSettings(); }; menuMissions.onclick=()=>{ mainMenu.classList.remove('open'); openMissions(); };
+preRunCancel.onclick=()=>{ preRun.classList.remove('open'); mainMenu.classList.add('open'); };
+preRunStart.onclick=()=>{ const sel = (qs('input[name="diff"]:checked')||{}).value || 'classic'; state.diffMode=sel; prefs.defaultDiff=sel; if(sel==='custom'){ prefs.custom={ life:+customLife.value, spawn:+customSpawn.value, score:+customScore.value, bits:+customBits.value }; state.custom=Object.assign({},prefs.custom);} saveJSON(PREF_KEY,prefs); preRun.classList.remove('open'); startGame(); };
+pmResume.onclick=()=>togglePauseMenu(false); pmShop.onclick=()=>{ pauseGame(true); openShop(false); }; pmLab.onclick=()=>{ pauseGame(true); openLab(); }; pmSettings.onclick=openSettings; pmMissions.onclick=()=>openMissions(); pmRestart.onclick=()=>{ if(confirm('Recomeçar a partida?')){ pauseMenu.classList.remove('open'); startGame(); } }; pmMenu.onclick=()=>{ if(confirm('Sair para o Menu? Progresso da rodada será perdido.')){ goToMenu(); } };
+btnCloseSettings.onclick=()=>settings.classList.remove('open'); btnCloseLab.onclick=()=>lab.classList.remove('open'); btnCloseShop.onclick=()=>closeShop(); btnCloseMissions.onclick=()=>missions.classList.remove('open');
+volRange.oninput=()=>{ state.volume=Number(volRange.value); localStorage.setItem(VOL_KEY,String(state.volume)); prefs.volume=state.volume; saveJSON(PREF_KEY,prefs); };
+chkReduce.onchange=()=>{ prefs.reduce=chkReduce.checked; saveJSON(PREF_KEY,prefs); };
+chkConfirmBuy.onchange=()=>{ prefs.confirmBuy=chkConfirmBuy.checked; saveJSON(PREF_KEY,prefs); };
+chkFavsFirst.onchange=()=>{ prefs.favsFirst=chkFavsFirst.checked; saveJSON(PREF_KEY,prefs); buildShopUI(); };
+chkAutoPause.onchange=()=>{ prefs.autoPause=chkAutoPause.checked; saveJSON(PREF_KEY,prefs); };
+qs('#btnResetRun').onclick=()=>{ if(confirm('Reiniciar partida atual?')) startGame(); };
+qs('#btnResetProgress').onclick=()=>{ if(confirm('Zerar Lifetime/Upgrades/Células/Recorde?')){ localStorage.removeItem(LS_KEY); localStorage.removeItem(UPG_KEYS); localStorage.removeItem(CELLS_KEY); localStorage.removeItem(BEST_KEY); state.lifetime=0; state.upgrades={width:0,speed:0,timelens:0,life:0,novaCD:0}; state.cells=0; state.best=0; saveJSON(UPG_KEYS,state.upgrades); localStorage.setItem(CELLS_KEY,String(0)); localStorage.setItem(BEST_KEY,String(0)); updateLevelUI(); cellsEl.textContent='0'; bestEl.textContent='0'; showToast('Progresso zerado'); } };
+
+window.addEventListener('blur', ()=>{ if(prefs.autoPause && state.running && !state.paused) pauseGame(true); });
+
+qsa('input[name="diff"]').forEach(r=>r.onchange=()=>{ const isCustom=(r.value==='custom' && r.checked); customPanel.style.display = isCustom? 'block':'none'; });
+[customLife,customSpawn,customScore,customBits].forEach(inp=>inp.oninput=()=>{
+  lblLife.textContent=String(customLife.value);
+  lblSpawn.textContent=(+customSpawn.value).toFixed(2)+'×';
+  lblScore.textContent=(+customScore.value).toFixed(2)+'×';
+  lblBits.textContent=(+customBits.value).toFixed(2)+'×';
+});
+
+// ===== Loja com Tiers + Fichas + Ofertas Limitadas + Undo + Histórico/Favoritos =====
+const RARITY={C:'Comum',R:'Raro',E:'Épico'};
+function shopTierCode(){ if(state.stage>=16) return 'III'; if(state.stage>=8) return 'II'; return 'I'; }
+function updateTierBadges(){ const t=shopTierCode(); tierTag.textContent=t; shopTier.textContent='Tier '+t; }
+function rarityWeights(){ const {lvl}=computeLevel(state.lifetime); const t=shopTierCode(); let base={C:60,R:30,E:10}; if(t==='II') base={C:50,R:35,E:15}; if(t==='III') base={C:40,R:40,E:20}; const bonusR=Math.min(15,Math.floor(lvl*1.2)); const bonusE=Math.min(12,Math.floor(lvl*0.7)); return { C:Math.max(20, base.C - bonusR - Math.floor(bonusE/2)), R: base.R + Math.floor(bonusR*0.8), E: base.E + bonusE } }
+
+function trackTimeout(fn,ms){ const id=setTimeout(fn,ms); state.undoHandles.push(id); return id; }
+
+const SHOP_CATALOG=[
+  { id:'WIDE', tier:'I', rar:'C', name:'Escudo ++', desc:'+25% largura por 12s', cost:25, apply:()=>{ const base=TAU*0.07*(1+0.06*(state.upgrades.width||0)); state.shieldTargetWidth=base*1.25; state.widthBoostUntil=state.t+12; } },
+  { id:'SCORE', tier:'I', rar:'C', name:'Pontuação +', desc:'+20% por 20s (empilha)', cost:28, apply:()=>{ state.scoreMultTemp=Math.min(2.0,state.scoreMultTemp+0.2); state.scoreMultTempUntil=state.t+20; } },
+  { id:'SLOW', tier:'I', rar:'C', name:'Lente rápida', desc:'0.7x por 6s', cost:22, apply:()=>{ state.slowUntil=Math.max(state.slowUntil,state.t+6); } },
+  { id:'AUTO', tier:'I', rar:'C', name:'Auto-aim', desc:'Assistência 4s', cost:18, apply:()=>{ state.autoAimUntil=Math.max(state.autoAimUntil,state.t+4); } },
+  { id:'NOVA', tier:'I', rar:'R', name:'Recarga NOVA', desc:'Instantânea', cost:20, apply:()=>{ state.novaCooldown=0; updateNovaUI(); } },
+  { id:'BITS+', tier:'II', rar:'R', name:'Bits Booster', desc:'+1 bit/deflect por 15s (até +3)', cost:32, apply:()=>{ state.bitsBonus=Math.min(3,state.bitsBonus+1); state.bitsBonusUntil=state.t+15; } },
+  { id:'GRACE', tier:'II', rar:'R', name:'Graça', desc:'Ignora próximo dano (até 3)', cost:30, apply:()=>{ state.grace=Math.min(3,state.grace+1); } },
+  { id:'PULSE+', tier:'II', rar:'R', name:'Nova +', desc:'-30% cooldown da Nova (20s)', cost:34, apply:()=>{ const old=state.novaCooldownBase; state.novaCooldownBase=Math.max(5,state.novaCooldownBase*0.7); trackTimeout(()=>{ state.novaCooldownBase=old; },20000); } },
+  { id:'CHAIN', tier:'III', rar:'E', name:'Eco Radial', desc:'Parry perfeito emite 2 micro-ondas (até 3)', cost:40, apply:()=>{ state.echoRadial=Math.min(3,state.echoRadial+1); } },
+  { id:'AURA', tier:'III', rar:'E', name:'Aura de Escudo', desc:'+10% largura base até o fim', cost:45, apply:()=>{ const base=TAU*0.07*(1+0.06*(state.upgrades.width||0)); state.shieldTargetWidth=base*1.10; } },
+  { id:'MAGNET', tier:'III', rar:'E', name:'Magnet', desc:'Atrai itens dourados por 15s', cost:36, apply:()=>{ state.magnetUntil=state.t+15; } },
+];
+
+function poolByTier(tier){ return SHOP_CATALOG.filter(x=>x.tier===tier); }
+function rollOneOffer(){ const w=rarityWeights(); const bag=[]; for(const k of ['C','R','E']) for(let i=0;i<w[k];i++) bag.push(k); const rar=bag[Math.floor(Math.random()*bag.length)]; const pool=poolByTier(shopTierCode()).filter(i=>i.rar===rar); const src=pool.length? pool: poolByTier(shopTierCode()); return structuredClone(src[Math.floor(Math.random()*src.length)]); }
+function pickOffers(){ const offers=[]; for(let i=0;i<3;i++){ if(state.shopLocks[i] && state.shopOffers[i]) offers[i]=state.shopOffers[i]; else offers[i]=rollOneOffer(); } state.shopOffers=offers; // Oferta limitada por sessão
+  const idx=Math.floor(Math.random()*offers.length); state.shopLimited={idx,discount:0.2,session:state.shopSession}; // Histórico: marcar vistos
+  const ts=Date.now(); for(const it of offers){ pushViewed(it, ts); }
+  buildShopUI(); saveShopHist(); }
+
+function effectiveCost(idx, it){ let c=it.cost; if(state.shopLimited && state.shopLimited.session===state.shopSession && idx===state.shopLimited.idx){ c=Math.max(1, Math.round(c*(1-state.shopLimited.discount))); } return c; }
+
+function favIds(){ return state.shopHist.favs||{}; }
+function isFav(id){ return !!favIds()[id]; }
+function toggleFav(id){ const fav=favIds(); if(fav[id]) delete fav[id]; else fav[id]=true; state.shopHist.favs=fav; saveShopHist(); buildShopUI(); showToast(fav[id]? '⭐ Adicionado aos favoritos':'☆ Removido dos favoritos'); }
+
+function saveShopHist(){ saveJSON(SHOP_HIST_KEY, state.shopHist); }
+function pushViewed(it, ts){ const arr=state.shopHist.viewed; arr.unshift({id:it.id,name:it.name,ts:ts}); while(arr.length>20) arr.pop(); }
+function pushBought(it, ts){ const arr=state.shopHist.bought; arr.unshift({id:it.id,name:it.name,ts:ts}); while(arr.length>20) arr.pop(); }
+
+function renderHistory(){ const fmt=t=>{ const d=Math.max(0, Date.now()-t); const s=Math.floor(d/1000); if(s<60) return s+'s'; const m=Math.floor(s/60); if(m<60) return m+'m'; const h=Math.floor(m/60); if(h<24) return h+'h'; const dd=Math.floor(h/24); return dd+'d'; };
+  histViewed.innerHTML=''; histBought.innerHTML=''; histFavs.innerHTML='';
+  for(const x of state.shopHist.viewed.slice(0,9)){ const tag=document.createElement('span'); tag.className='tag'; tag.textContent=x.name+' · '+fmt(x.ts); histViewed.appendChild(tag); }
+  for(const x of state.shopHist.bought.slice(0,9)){ const tag=document.createElement('span'); tag.className='tag'; tag.textContent=x.name+' · '+fmt(x.ts); histBought.appendChild(tag); }
+  const favEntries=Object.keys(state.shopHist.favs||{}); for(const id of favEntries){ const item=SHOP_CATALOG.find(i=>i.id===id); const tag=document.createElement('span'); tag.className='tag'; tag.textContent=(item?item.name:id); histFavs.appendChild(tag); }
+}
+
+chkShowHistory.onchange=()=>{ historyBox.style.display=chkShowHistory.checked? 'block':'none'; if(chkShowHistory.checked) renderHistory(); };
+
+function buildShopUI(){ shopGrid.innerHTML=''; bitsShopEl.textContent=state.bits; rerollCostEl.textContent=state.rerollCost; tokensEl.textContent=state.rerollTokens; updateTierBadges();
+  const order = state.shopOffers.map((it,idx)=>({it,idx, fav:isFav(it.id)})); if(prefs.favsFirst) order.sort((a,b)=>Number(b.fav)-Number(a.fav));
+  for(const ent of order){ const it=ent.it, idx=ent.idx; const costEff=effectiveCost(idx,it); const can= state.bits>=costEff; const limited=(state.shopLimited && state.shopLimited.session===state.shopSession && idx===state.shopLimited.idx); const fav=isFav(it.id);
+    const card=document.createElement('div'); card.className='card2'+(limited?' limited':'');
+    const impact = it.id==='WIDE'? '🛡️ +25% largura / 12s' : it.id==='SCORE'? '🏅 +20% pontos / 20s (stack)': it.id==='SLOW'? '⏳ 0.7x por 6s': it.id==='AUTO'? '🎯 assistência 4s': it.id==='NOVA'? '⚡ recarga imediata': it.id==='BITS+'? '⬡ +bits por 15s': it.id==='GRACE'? '🛡️ ignora 1 dano': it.id==='PULSE+'? '⚡ Nova -30% CD por 20s': it.id==='CHAIN'? '🔁 ecos em parry perfeito': it.id==='AURA'? '🛡️ +10% base (até o fim)': it.id==='MAGNET'? '🧲 atrai por 15s': '';
+    card.innerHTML=`<div class="row" style="justify-content:space-between"><div><h4 style="margin:0">${it.name} ${limited?'<span class=\"badge\" title=\"Oferta limitada\">-20%</span>':''}</h4><div class="muted">${it.desc}</div><div class="muted" style="margin-top:4px">Impacto: ${impact}</div></div><span class="rarity ${it.rar}">${RARITY[it.rar]}</span></div>
+      <div class="row" style="gap:8px;margin-top:8px"><span class="badge">${costEff} ⬡</span><button class="btnBuy" ${can?'':'disabled'}>Comprar</button><label class="lock"><input type="checkbox" ${state.shopLocks[idx]?'checked':''}/> Lock</label><span class="fav"><button class="btnFav ${fav?'active':''}" title="${fav?'Remover dos favoritos':'Adicionar aos favoritos'}">★</button></span></div>`;
+    const buy=card.querySelector('.btnBuy'); buy.onclick=()=>buyOffer(idx,costEff);
+    const lock=card.querySelector('input[type="checkbox"]'); lock.onchange=e=>{ state.shopLocks[idx]=!!e.target.checked; };
+    const favBtn=card.querySelector('.btnFav'); favBtn.onclick=()=>toggleFav(it.id);
+    shopGrid.appendChild(card);
   }
+  updateUndoBar(); if(chkShowHistory.checked) renderHistory();
+}
 
-  function buyFromLab(btn){
-    const cost = +btn.dataset.cost; if(Game.cells<cost){ toast('Células insuficientes.'); return }
-    Game.cells -= cost; // aplicar efeito simples
-    if(btn.dataset.id==='hp1'){ Game.lives += 1 }
-    Save.save(Game); updateHUD(); toast('Pesquisa aplicada!')
-  }
+function snapshotState(){ return { bits:state.bits, shieldTargetWidth:state.shieldTargetWidth, widthBoostUntil:state.widthBoostUntil, scoreMultTemp:state.scoreMultTemp, scoreMultTempUntil:state.scoreMultTempUntil, slowUntil:state.slowUntil, autoAimUntil:state.autoAimUntil, novaCooldownBase:state.novaCooldownBase, novaCooldown:state.novaCooldown, bitsBonus:state.bitsBonus, bitsBonusUntil:state.bitsBonusUntil, grace:state.grace, echoRadial:state.echoRadial, magnetUntil:state.magnetUntil }; }
+function restoreSnapshot(s){ if(!s) return; Object.assign(state, s); bitsEl.textContent=state.bits; }
 
-  // ====== XP / Level up (mais barato) ======
-  function addXP(amount){
-    Game.xp += amount; const need = Balance.xpFor(Game.level);
-    if(Game.xp>=need){ Game.xp -= need; Game.level++; toast(`Nível ${Game.level}!`); }
-    updateHUD(); Save.save(Game);
-  }
+function setUndo(data){ state.undo=data; updateUndoBar(); const end=data.expire; if(state.undoTimerInt) clearInterval(state.undoTimerInt); state.undoTimerInt=setInterval(()=>{ const left=Math.max(0, end-Date.now()); undoTimer.textContent=(left/1000).toFixed(1)+'s'; if(left<=0){ clearInterval(state.undoTimerInt); state.undo=null; updateUndoBar(); } }, 100);
+}
+function updateUndoBar(){ if(state.undo){ undoBar.classList.add('show'); undoMsg.textContent='Compra: '+(state.undo?.itemName||''); } else { undoBar.classList.remove('show'); } }
+btnUndo.onclick=()=>{ if(!state.undo) return; (state.undoHandles||[]).forEach(id=>clearTimeout(id)); state.undoHandles=[]; restoreSnapshot(state.undo.snapshot); state.bits += state.undo.spent; bitsEl.textContent=state.bits; bitsShopEl.textContent=state.bits; showToast('↩️ Compra desfeita'); state.undo=null; updateUndoBar(); buildShopUI(); };
 
-  // ====== Wiring ======
-  function wire(){
-    // open/close helpers
-    $$('[data-close]').forEach(b=> b.addEventListener('click', e=> Panels.close(b.getAttribute('data-close'))))
+function buyOffer(idx,costEff){ const it=state.shopOffers[idx]; if(!it) return; if(prefs.confirmBuy){ if(!confirm(`Comprar ${it.name} por ${costEff} bits?`)) return; }
+  if(state.bits<costEff){ showToast('Bits insuficientes'); return; }
+  const snap=snapshotState(); state.undoHandles=[]; state.bits-=costEff; state.bitsRunGained-=costEff; // gasto reduz do ganho líquido do dia
+  bitsEl.textContent=state.bits; bitsShopEl.textContent=state.bits; it.apply(); showToast('✔ '+it.name,900); beep('power',0.04); const ts=Date.now(); pushBought(it,ts); saveShopHist(); setUndo({ expire:Date.now()+3000, snapshot:snap, spent:costEff, idx, itemName:it.name }); buildShopUI(); }
 
-    // main menu buttons
-    $('#mm-start').addEventListener('click', startRun);
-    $('#mm-lab').addEventListener('click', openLab);
-    $('#mm-settings').addEventListener('click', ()=>Panels.open('#menu-settings'));
-    $('#mm-credits').addEventListener('click', ()=>Panels.open('#menu-credits'));
+function openShop(auto=false){ if(!state.running) return; pauseGame(true); shop.classList.add('open'); state.shopSession++; if(!state.shopOffers.length) pickOffers(); else { state.shopLimited={ idx:Math.floor(Math.random()*state.shopOffers.length), discount:0.2, session:state.shopSession }; // marcar vistos
+  const ts=Date.now(); for(const it of state.shopOffers){ pushViewed(it, ts); } buildShopUI(); saveShopHist(); }
+  if(auto) showToast('🛒 Novas ofertas!',1000); }
+function closeShop(){ shop.classList.remove('open'); if(state.running) pauseGame(false); state.undo=null; updateUndoBar(); }
+function toggleShop(){ if(shop.classList.contains('open')) closeShop(); else openShop(false); }
+btnReroll.onclick=()=>rerollShop();
+function rerollShop(){ if(state.rerollTokens>0){ state.rerollTokens--; tokensEl.textContent=state.rerollTokens; pickOffers(); showToast('🔃 Rerrolado (ficha)',900); return; } if(state.bits>=state.rerollCost){ state.bits-=state.rerollCost; state.bitsRunGained-=state.rerollCost; state.rerollCost=Math.min(50,state.rerollCost+5); bitsEl.textContent=state.bits; bitsShopEl.textContent=state.bits; rerollCostEl.textContent=state.rerollCost; pickOffers(); showToast('🔃 Rerrolado',900); } else { showToast('Bits insuficientes',900); } }
+function maybeRefreshShop(){ const locks=[...state.shopLocks]; pickOffers(); state.shopLocks=locks; buildShopUI(); }
 
-    // top bar
-    $('#btn-play').addEventListener('click', ()=> Panels.open('#menu-main'));
-    $('#btn-pause').addEventListener('click', pause);
-    $('#btn-shop').addEventListener('click', openShop);
-    $('#btn-lab').addEventListener('click', openLab);
-    $('#btn-settings').addEventListener('click', ()=>Panels.open('#menu-settings'));
+// ===== Missões diárias =====
+function todayKey(){ const d=new Date(); const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${dd}`; }
+let daily = loadJSON(DAILY_KEY, null);
+function defaultMissions(){ return [
+  { id:'deflect_50', name:'Defletir 50 projéteis', goal:50, stat:'deflects', reward:{bits:50}, status:'active' },
+  { id:'boss_1', name:'Derrotar 1 Boss', goal:1, stat:'bosses', reward:{tokens:1}, status:'active' },
+  { id:'stage_6', name:'Alcançar a Fase 6', goal:6, stat:'maxStage', reward:{cells:2}, status:'active' }
+]; }
+function ensureDaily(){ const key=todayKey(); if(!daily || daily.date!==key){ daily={ date:key, missions: defaultMissions(), stats:{ deflects:0, bosses:0, maxStage:1, maxBitsRun:0 } }; saveJSON(DAILY_KEY,daily); } }
+ensureDaily();
 
-    // pause menu
-    $('#pause-resume').addEventListener('click', resume);
-    $('#pause-shop').addEventListener('click', ()=>{Panels.close('#menu-pause'); openShop()});
-    $('#pause-lab').addEventListener('click', ()=>{Panels.close('#menu-pause'); openLab()});
-    $('#pause-settings').addEventListener('click', ()=>{Panels.close('#menu-pause'); Panels.open('#menu-settings')});
-    $('#pause-restart').addEventListener('click', restart);
-    $('#pause-main').addEventListener('click', backToMain);
+function openMissions(){ missions.classList.add('open'); renderMissions(); }
+function addDailyStat(k,v){ ensureDaily(); daily.stats[k]=(daily.stats[k]||0)+v; saveJSON(DAILY_KEY,daily); updateMissionsStatus(); }
+function setDailyMax(k,v){ ensureDaily(); daily.stats[k]=Math.max(daily.stats[k]||0, v); saveJSON(DAILY_KEY,daily); updateMissionsStatus(); }
+function updateMissionsStatus(){ let changed=false; for(const ms of daily.missions){ if(ms.status==='claimed') continue; const cur = (ms.stat==='maxStage'||ms.stat==='maxBitsRun')? (daily.stats[ms.stat]||0) : (daily.stats[ms.stat]||0); if(cur>=ms.goal){ if(ms.status!=='claimable'){ ms.status='claimable'; changed=true; } } }
+  if(changed){ saveJSON(DAILY_KEY,daily); renderMissions(); }
+}
+function renderMissions(){ missionsGrid.innerHTML=''; for(const ms of daily.missions){ const cur=(ms.stat==='maxStage'||ms.stat==='maxBitsRun')? (daily.stats[ms.stat]||0) : (daily.stats[ms.stat]||0); const pct=Math.min(100, Math.floor(cur/ms.goal*100)); const card=document.createElement('div'); card.className='mission'; const rwd = `${ms.reward.bits? ('+'+ms.reward.bits+' ⬡ '):''}${ms.reward.tokens? ('+'+ms.reward.tokens+' 🎟️ '):''}${ms.reward.cells? ('+'+ms.reward.cells+' ⚙️'):''}`;
+  card.innerHTML=`<h4>${ms.name}</h4><div class="meter" style="margin:6px 0 8px"><span style="width:${pct}%"></span></div><div class="row" style="justify-content:space-between"><span class="muted">${cur}/${ms.goal}</span><span class="badge">Recompensa: ${rwd||'-'}</span></div><div class="row" style="justify-content:flex-end;margin-top:8px"><button ${ms.status==='claimable'?'':'disabled'} data-claim="${ms.id}">Resgatar</button></div>`; const btn=card.querySelector('button[data-claim]'); btn.onclick=()=>claimMission(ms.id); missionsGrid.appendChild(card);} }
+function claimMission(id){ ensureDaily(); const ms = daily.missions.find(m=>m.id===id); if(!ms || ms.status!=='claimable') return; // aplicar recompensa
+  if(ms.reward.cells){ state.cells += ms.reward.cells; localStorage.setItem(CELLS_KEY,String(state.cells)); cellsEl.textContent=state.cells; cellsLabEl.textContent=state.cells; }
+  if(ms.reward.tokens){ state.rerollTokens += ms.reward.tokens; tokensEl.textContent=state.rerollTokens; showToast('🎟️ +'+ms.reward.tokens+' Ficha(s)'); }
+  if(ms.reward.bits){ if(state.running){ state.bits += ms.reward.bits; state.bitsRunGained += ms.reward.bits; bitsEl.textContent=state.bits; bitsShopEl.textContent=state.bits; } else { bank.pendingBits += ms.reward.bits; saveJSON(BANK_KEY, bank); showToast('⬡ +'+ms.reward.bits+' bits (aplicados ao iniciar)'); } }
+  ms.status='claimed'; saveJSON(DAILY_KEY,daily); renderMissions(); }
 
-    // shop events
-    $('#shop-grid').addEventListener('click', e=>{ const b=e.target.closest('button[data-id]'); if(b) buyFromShop(b) })
-    $('#shop-reroll').addEventListener('click', rerollShop);
+// ===== Jogo =====
+function applyUpgradesToStats(){ const u=state.upgrades; const widthMult=1+0.06*(u.width||0); state.shieldTargetWidth=TAU*0.07*widthMult; state.shieldWidth=state.shieldTargetWidth; state.shieldSpeed=2.6*(1+0.15*(u.speed||0)); state.lives=3+(u.life||0); state.novaCooldownBase=Math.max(5,12-1.2*(u.novaCD||0)); }
+function startGame(){ state.running=true; state.paused=false; state.gameOver=false; mainMenu.classList.remove('open'); pauseMenu.classList.remove('open'); lab.classList.remove('open'); shop.classList.remove('open'); settings.classList.remove('open'); missions.classList.remove('open'); runSummary.classList.remove('open'); statusEl.textContent='Jogando'; state.t=0; state.dt=0; state.timeScale=1; state.shieldAngle=0; state.threats.length=0; state.particles.length=0; state.score=0; state.combo=0; state.stage=1; state.difficulty=0; state.spawnInterval=0.8; state.spawnTimer=0; state.novaCooldown=0; state.bits=0; state.grace=0; state.bossActive=false; state.boss=null; state.nextShopStage=2; state.rerollCost=10; state.shopLocks=[false,false,false]; state.echoRadial=0; state.rerollTokens=0; state.undo=null; state.undoHandles=[]; state.bossesDefeated=0; state.bitsRunGained=0; // dificuldade
+  applyUpgradesToStats(); const d= state.diffMode==='custom'? { life:(state.custom.life-3), spawn: state.custom.spawn, score: state.custom.score, bits: state.custom.bits } : (state.diffMods[state.diffMode]||state.diffMods.classic); state.lives = clamp(state.lives + (d.life||0), 1, 9); state.spawnInterval *= (d.spawn||1); document.getElementById('mult').textContent='x1'; // aplicar bits pendentes de missões
+  if(bank.pendingBits>0){ state.bits += bank.pendingBits; state.bitsRunGained += bank.pendingBits; bitsEl.textContent=state.bits; showToast('⬡ +'+bank.pendingBits+' bits (Missões)'); bank.pendingBits=0; saveJSON(BANK_KEY, bank); }
+  bitsEl.textContent=state.bits; scoreEl.textContent=state.score; livesEl.textContent=state.lives; cellsEl.textContent=state.cells; updateNovaUI(true); ensureAudio(); }
 
-    // lab events
-    $('#lab-grid').addEventListener('click', e=>{ const b=e.target.closest('button[data-id]'); if(b) buyFromLab(b) })
+function endRunRewards(){ // economia ajustada de células: base no score e progressos
+  const baseCells = Math.floor(state.score/150); const bossBonus = Math.floor(state.bossesDefeated*1.0); const stageBonus = Math.max(0, Math.floor((state.stage-5)/5*0.6)); const gained = Math.max(1, baseCells + bossBonus + stageBonus);
+  const beforeCells = state.cells; state.cells += gained; localStorage.setItem(CELLS_KEY, String(state.cells)); cellsEl.textContent=state.cells; cellsLabEl.textContent=state.cells; state.lifetime += state.score; localStorage.setItem(LS_KEY, String(state.lifetime)); updateLevelUI(); // summary
+  sumScore.textContent=state.score; sumStage.textContent=state.stage; sumBits.textContent=state.bitsRunGained; sumCells.textContent=(state.cells - beforeCells);
+  // atualizar diárias (max bits em uma run)
+  setDailyMax('maxBitsRun', state.bitsRunGained);
+}
+function gameOver(){ state.running=false; state.gameOver=true; statusEl.textContent='Game Over'; showToast('Game Over • Pontos: '+state.score, 1600); endRunRewards(); const wasBest = state.score>state.best; if(wasBest){ state.best=state.score; localStorage.setItem(BEST_KEY, state.best); bestEl.textContent=state.best; bestMenu.textContent=state.best; sumRecord.style.display='inline-block'; } else { sumRecord.style.display='none'; } setTimeout(()=>{ runSummary.classList.add('open'); },500); }
 
-    // settings
-    const v=$('#cfg-volume'), rm=$('#cfg-reduce-motion'), sc=$('#cfg-shop-confirm'), pb=$('#cfg-pause-bg');
-    v.value = Game.cfg.volume; rm.checked = Game.cfg.reduceMotion; sc.checked = Game.cfg.shopConfirm; pb.checked = Game.cfg.pauseOnBlur;
-    v.addEventListener('input',()=>{ Game.cfg.volume=+v.value; Save.save(Game) })
-    rm.addEventListener('change',()=>{ Game.cfg.reduceMotion=rm.checked; Save.save(Game) })
-    sc.addEventListener('change',()=>{ Game.cfg.shopConfirm=sc.checked; Save.save(Game) })
-    pb.addEventListener('change',()=>{ Game.cfg.pauseOnBlur=pb.checked; Save.save(Game) })
+sumRestart.onclick=()=>{ runSummary.classList.remove('open'); startGame(); };
+sumShop.onclick=()=>{ runSummary.classList.remove('open'); pauseGame(true); openShop(false); };
+sumMenu.onclick=()=>{ runSummary.classList.remove('open'); goToMenu(); };
 
-    // keyboard
-    window.addEventListener('keydown', e=>{
-      if(e.key==='Escape' || e.key.toLowerCase()==='p'){ if(Panels.$current==='#menu-pause'){ resume() } else pause() }
-      if(e.key.toLowerCase()==='s'){ openShop() }
-      if(e.key.toLowerCase()==='r'){ /* reservado para rerrolar in-run */ }
-      if(e.key===' '){ if(!Game.running) startRun(); }
-    })
+function pauseGame(p=true){ state.paused=p; statusEl.textContent=p? 'Pausado':'Jogando'; }
+function togglePauseMenu(force){ const want = (typeof force==='boolean')? force : !pauseMenu.classList.contains('open'); if(!state.running) return; if(want){ pauseGame(true); pauseMenu.classList.add('open'); } else { pauseMenu.classList.remove('open'); pauseGame(false); } }
+function openSettings(){ settings.classList.add('open'); pauseGame(true); }
+function goToMenu(){ state.running=false; state.paused=false; mainMenu.classList.add('open'); pauseMenu.classList.remove('open'); }
 
-    // Pause on blur (opcional)
-    window.addEventListener('blur', ()=>{ if(Game.cfg.pauseOnBlur) pause() })
+function toggleMute(){ state.muted=!state.muted; btnMute.textContent= state.muted? '🔇':'🔊'; }
+function saveScreenshot(){ const a=document.createElement('a'); a.download='orbital-screenshot.png'; a.href=cvs.toDataURL('image/png'); a.click(); showToast('📸 Screenshot salva'); }
 
-    // Default: abrir menu principal ao carregar
-    Panels.open('#menu-main');
-    updateHUD();
-  }
+// NOVA (barra animada no HUD)
+function updateNovaUI(force){ const bar=qs('#novaBar'); const inner=bar?.querySelector('span'); if(!bar||!inner) return; const pct=1 - clamp(state.novaCooldown/state.novaCooldownBase,0,1); inner.style.width=(pct*100).toFixed(1)+'%'; if(pct>=1 && (force||!bar.classList.contains('ready'))){ bar.classList.add('ready'); showToast('⚡ Nova pronta'); } else if(pct<1 && bar.classList.contains('ready')){ bar.classList.remove('ready'); } }
+function activateNova(){ if(!state.running||state.paused) return; if(state.novaCooldown>0) return; const mult = (state.diffMode==='extreme')? 0.85:1.0; state.novaCooldown=state.novaCooldownBase*mult; beep('nova',0.05); addParticles(state.center.x,state.center.y,'#7caccc',120); const inner=state.rShield-40, outer=state.rShield+120; for(const th of state.threats){ if(!th.alive||th.deflected) continue; if(th.r>=inner && th.r<=outer){ th.deflected=true; th.vr=Math.abs(th.vr)*1.15; addParticles(state.center.x+Math.cos(th.angle)*state.rShield, state.center.y+Math.sin(th.angle)*state.rShield, th.color, 12); state.score += Math.floor(8*state.scoreMultTemp); } } scoreEl.textContent=state.score; showToast('⚡ Nova!'); updateNovaUI(true); }
 
-  document.addEventListener('DOMContentLoaded', wire);
-  </script>
+// Pontuação & Bits (economia ajustada)
+function onDeflect(th, perfect=false){ th.deflected=true; th.vr=Math.abs(th.vr)*(th.type==='fast'?1.1:1); const x=state.center.x+Math.cos(th.angle)*state.rShield; const y=state.center.y+Math.sin(th.angle)*state.rShield; addParticles(x,y, th.special?'#ffd166':th.color, th.special?36:18); beep(th.special? 'power': (perfect? 'perfect':'ping'), th.special?0.04:(perfect?0.035:0.02)); const base=10+Math.floor(state.difficulty*0.6); state.combo=Math.min(50,state.combo+1); const mult=1+Math.floor(state.combo/8); let add=(th.special?50:base)*mult; const d= state.diffMode==='custom'? state.custom : state.diffMods[state.diffMode]; // ajuste por estágio
+  const stageFactor = 1 + Math.min(0.40, 0.02*(state.stage-1)); add = Math.floor(add * state.scoreMultTemp * (d?d.score:1) * stageFactor);
+  state.score += add; scoreEl.textContent=state.score; document.getElementById('mult').textContent='x'+mult; let bitsAdd = ((th.special?4:1) + (perfect?2:0) + ((state.t<=state.bitsBonusUntil)? (state.bitsBonus||0):0)) * (d?d.bits:1) * stageFactor; bitsAdd=Math.floor(bitsAdd);
+  state.bits += bitsAdd; state.bitsRunGained += bitsAdd; bitsEl.textContent=state.bits; if(th.special) applyPower(); if(state.bossActive && state.boss){ state.boss.hp -= (perfect?3:1); if(state.boss.hp<0) state.boss.hp=0; }
+  // diárias
+  addDailyStat('deflects',1);
+}
+
+function hitCore(){ if(state.grace>0){ state.grace--; showToast('🛡️ Graça consumida'); return; } beep('hit',0.03); state.lives--; state.combo=0; showToast('❌ Dano recebido',900); if(state.lives<=0){ gameOver(); } }
+function applyPower(){ const u=state.upgrades; const roll=Math.random(); if(roll<0.4){ const extra=(u.timelens||0)*0.5; const dur=2.2+extra; state.timeScale=0.45; showToast('⏳ Lente de tempo',700); setTimeout(()=>state.timeScale=1, dur*1000); } else if(roll<0.8){ const target=TAU*0.07*(1+0.06*(u.width||0)); state.shieldTargetWidth=target*1.6; showToast('🛡️ Escudo amplo',700); setTimeout(()=>state.shieldTargetWidth=target,2600); } else { state.lives=Math.min(8,state.lives+1); showToast('💚 Vida extra',900); livesEl.textContent=state.lives; } }
+
+// Spawns & Bosses
+function spawnThreat(){ const r=Math.random(); let type='normal'; if(state.difficulty>20 && r<0.20) type='fast'; if(state.difficulty>35 && r<0.35) type='snake'; const angle=Math.random()*TAU; let speed=70+10*state.difficulty+Math.random()*25; if(type==='fast') speed*=1.35; const special=Math.random()<Math.min(0.05+state.difficulty*0.002,0.20); const color=special?'#ffd166':(type==='fast'?'#ff8a7a':'#4a83b6'); const th={ angle, r:state.rBase*0.98, vr:-speed, alive:true, deflected:false, color, special, type }; if(type==='snake'){ th.wigA=Math.random()*TAU; th.wigF=2+Math.random()*2; } state.threats.push(th); }
+function spawnThreatAt(angle,speed,special=false,color='#4a83b6',type='bossShot'){ state.threats.push({ angle, r:state.rBase*0.98, vr:-speed, alive:true, deflected:false, color:special?'#ffd166':color, special, type }); }
+function spawnMine(angle){ state.threats.push({ angle, r:state.rShield+160, vr:-40, alive:true, deflected:false, color:'#7caccc', special:false, type:'mine', omega:0.9 }); }
+function addParticles(x,y,color,count=18,spread=TAU){ for(let i=0;i<count;i++){ const a=Math.random()*spread; const v=60+Math.random()*220; state.particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:0.6+Math.random()*0.4,age:0,color}); } }
+
+function spawnBoss(){ state.bossActive=true; const which=(Math.floor(state.stage/5)%2===1)?'laser':'astro'; const hp=34+Math.floor(state.difficulty*0.9); if(which==='laser'){
+  state.boss={kind:'laser',hp,angle:Math.random()*TAU,sweep:0.9,dir:Math.random()<0.5?1:-1,phase:'charge',t:0,chargeTime:2.0,fireTime:2.4,restTime:1.4,fireCooldown:0};
+} else {
+  state.boss={kind:'astro',hp,angle:Math.random()*TAU,rot:0.35*(Math.random()<0.5?-1:1),pulseT:0,pulseEvery:3.0,mode:'pull',mineT:0,mineEvery:2.2};
+}
+showToast('👾 Boss!'); beep('boss',0.05); }
+function updateBoss(dt){ if(!state.bossActive||!state.boss) return; const b=state.boss; if(b.kind==='laser'){ b.t+=dt; if(b.phase==='charge'){ if(b.t>=b.chargeTime){ b.phase='fire'; b.t=0; b.fireCooldown=0; } } else if(b.phase==='fire'){ b.fireCooldown-=dt; if(b.fireCooldown<=0){ b.fireCooldown=0.06; const sweepA=(b.t/b.fireTime-0.5)*b.sweep*b.dir; const a=angleNorm(b.angle+sweepA); spawnThreatAt(a,130+18*state.difficulty,false,'#ff8a7a'); } if(b.t>=b.fireTime){ b.phase='rest'; b.t=0; } } else if(b.phase==='rest'){ if(b.t>=b.restTime){ b.phase='charge'; b.t=0; b.angle=angleNorm(b.angle+(Math.random()*1.6-0.8)); b.dir*=-1; } } } else {
+  b.angle=angleNorm(b.angle+b.rot*dt); b.pulseT+=dt; if(b.pulseT>=b.pulseEvery){ b.pulseT=0; b.mode=(b.mode==='pull'?'push':'pull'); showToast(b.mode==='pull'?'↘️ Gravidade: puxando':'↗️ Gravidade: empurrando',900); }
+  b.mineT+=dt; if(b.mineT>=b.mineEvery){ b.mineT=0; spawnMine(b.angle+(Math.random()*1.2-0.6)); }
+  const acc=(b.mode==='pull'?-40:40); for(const th of state.threats){ if(!th.alive||th.deflected) continue; const dr=state.rShield-th.r; th.vr+=(acc+Math.sign(dr)*20)*dt*0.35; }
+}
+if(state.boss && state.boss.hp<=0){ state.bossesDefeated++; state.bossActive=false; state.boss=null; // recompensa por boss escalada
+  const tier = (shopTierCode()==='III'?3: shopTierCode()==='II'?2:1); const addBits = Math.floor(30 + 10*(tier-1) + Math.max(0, state.stage*0.5)); const addTokens = (state.stage>=16? 2:1);
+  state.bits += addBits; state.bitsRunGained += addBits; state.rerollTokens += addTokens; bitsEl.textContent=state.bits; tokensEl.textContent=state.rerollTokens; showToast(`✅ Boss derrotado! +${addBits} bits +${addTokens} Ficha(s)` ,1600); addDailyStat('bosses',1); maybeRefreshShop(); }
+}
+
+// Update loop
+function update(dt){ if(!state.running||state.paused) return; state.difficulty+=dt; const d= state.diffMode==='custom'? state.custom : (state.diffMods[state.diffMode]||state.diffMods.classic); state.spawnInterval=clamp(0.85 - state.difficulty*0.015,0.30,0.85) * (d?d.spawn:1);
+  const oldStage=state.stage; state.stage=1+Math.floor(state.difficulty/20); if(state.stage!==oldStage){ setDailyMax('maxStage', state.stage); }
+  updateTierBadges(); if(state.stage>=state.nextShopStage){ state.nextShopStage+=2; maybeRefreshShop(); openShop(true); }
+  if(!state.bossActive && state.stage>1 && state.stage%5===0) spawnBoss(); updateBoss(dt);
+  state.timeScale = (state.t<=state.slowUntil)? 0.7:1; if(state.t>state.scoreMultTempUntil) state.scoreMultTemp=1.0; if(state.t>state.bitsBonusUntil) state.bitsBonus=0;
+  if(state.inputs.mouseAngle!=null){ let target=state.inputs.mouseAngle; if(state.t<=state.autoAimUntil && state.threats.length){ const near=state.threats.reduce((p,c)=> (c.vr<0 && !c.deflected && c.r>state.rShield-80 && c.r<state.rShield+140 && Math.abs(angleDiff(c.angle,state.shieldAngle))<Math.PI/3 && (!p||c.r<p.r))? c:p, null); if(near) target=near.angle; } let diff=angleDiff(target,state.shieldAngle); state.shieldAngle=angleNorm(state.shieldAngle + diff*clamp(dt*7,0,0.25)); }
+  if(state.inputs.left) state.shieldAngle=angleNorm(state.shieldAngle - state.shieldSpeed*dt);
+  if(state.inputs.right) state.shieldAngle=angleNorm(state.shieldAngle + state.shieldSpeed*dt);
+  const baseTarget=TAU*0.07*(1+0.06*(state.upgrades.width||0)); if(state.t>state.widthBoostUntil) state.shieldTargetWidth=baseTarget; state.shieldWidth=lerp(state.shieldWidth,state.shieldTargetWidth, 1-Math.exp(-dt*7));
+  state.spawnTimer-=dt; if(state.spawnTimer<=0 && !state.bossActive){ state.spawnTimer+=state.spawnInterval*(0.6+Math.random()*0.8); spawnThreat(); }
+  const rm=[]; for(const th of state.threats){ if(th.type==='snake'){ th.wigA+=(th.wigF||2)*dt; th.angle=angleNorm(th.angle+Math.sin(th.wigA)*0.003);} if(th.type==='mine'){ th.angle=angleNorm(th.angle+(th.omega||1)*dt*0.6);} th.r += th.vr*dt*state.timeScale; const near=(th.vr<0 && th.r<=state.rShield+12 && th.r>=state.rShield-18) || (th.vr>0 && th.r>=state.rShield-18 && th.r<=state.rShield+20); if(near && !th.deflected && th.alive){ const df=Math.abs(angleDiff(th.angle,state.shieldAngle)); const perfect = df<=state.shieldWidth*(state.parryWindowRatio*0.5); if(df<=state.shieldWidth*0.5) onDeflect(th, perfect); } if(th.r<=state.rCore && th.alive && !th.deflected){ th.alive=false; addParticles(state.center.x,state.center.y,'#ff3b58',60); hitCore(); livesEl.textContent=state.lives; if(state.lives<=0) rm.push(th);} if(th.r>=state.rBase*1.02 || th.r<2){ rm.push(th); } } if(rm.length) state.threats=state.threats.filter(x=>!rm.includes(x));
+  for(const p of state.particles){ p.age+=dt*state.timeScale; p.x+=p.vx*dt; p.y+=p.vy*dt; const damp=prefs.reduce?0.995:0.992; p.vx*=damp; p.vy*=damp; } state.particles=state.particles.filter(p=>p.age<p.life);
+  if(state.novaCooldown>0){ state.novaCooldown-=dt; if(state.novaCooldown<=0){ state.novaCooldown=0; } updateNovaUI(); }
+  state.t += dt;
+}
+
+// Render
+let last=performance.now(), frames=0, fpsAccum=0; function loop(now){ const rawdt=Math.min(0.05,(now-last)/1000); last=now; update(rawdt); draw(); frames++; fpsAccum+=1/rawdt; if(frames>=20){ fpsEl.textContent='FPS: '+Math.round(fpsAccum/frames); frames=0; fpsAccum=0; } requestAnimationFrame(loop);} requestAnimationFrame(loop);
+function draw(){ const w=cvs.width,h=cvs.height; ctx.clearRect(0,0,w,h); ctx.save(); ctx.translate(state.center.x,state.center.y);
+  // BG rings
+  const bg=ctx.createRadialGradient(0,0,state.rCore*0.2,0,0,state.rBase); bg.addColorStop(0,'rgba(124,172,204,.08)'); bg.addColorStop(1,'rgba(4,84,148,.05)'); ctx.fillStyle=bg; ctx.beginPath(); ctx.arc(0,0,state.rBase,0,TAU); ctx.fill(); ctx.globalCompositeOperation='lighter'; ctx.strokeStyle='rgba(124,172,204,.12)'; ctx.lineWidth=2; ctx.shadowColor='rgba(124,172,204,.35)'; ctx.shadowBlur=8; for(let i=0;i<3;i++){ ctx.beginPath(); ctx.arc(0,0, state.rShield + (i-1)*24, 0, TAU); ctx.stroke(); } ctx.shadowBlur=0; ctx.globalCompositeOperation='source-over';
+  // core
+  const corePulse=1+Math.sin(state.t*3)*0.04; ctx.fillStyle='#7caccc'; ctx.shadowColor='#7caccc'; ctx.shadowBlur=30; ctx.beginPath(); ctx.arc(0,0, state.rCore*corePulse, 0, TAU); ctx.fill(); ctx.shadowBlur=0;
+  // boss visuals
+  if(state.bossActive && state.boss){ const b=state.boss; if(b.kind==='laser'){ const sweep=b.sweep||0.8; const dir=b.dir||1; const a0=b.angle - sweep*0.5*dir; const a1=b.angle + sweep*0.5*dir; ctx.save(); ctx.strokeStyle='rgba(255,120,90,.5)'; ctx.lineWidth=12; ctx.shadowColor='rgba(255,120,90,.6)'; ctx.shadowBlur=12; ctx.beginPath(); const span=(b.phase==='charge')? [b.angle-0.15, b.angle+0.15] : [a0,a1]; ctx.arc(0,0, state.rShield+90, span[0], span[1]); ctx.stroke(); ctx.restore(); } else { ctx.save(); ctx.strokeStyle='rgba(255,186,73,.35)'; ctx.lineWidth=10; ctx.beginPath(); ctx.arc(0,0, state.rShield+120, 0, TAU); ctx.stroke(); ctx.restore(); } ctx.save(); ctx.fillStyle='#ffd166'; ctx.font='bold 22px system-ui'; ctx.textAlign='center'; ctx.fillText('BOSS '+state.boss.hp, 0, -state.rShield-140); ctx.restore(); }
+  // shield
+  const aw=state.shieldWidth; ctx.save(); ctx.rotate(state.shieldAngle); const g2=ctx.createLinearGradient(state.rShield-aw*0, -8, state.rShield+aw*0, 8); g2.addColorStop(0,'#387db4'); g2.addColorStop(1,'#7caccc'); ctx.strokeStyle=g2; ctx.lineWidth=16; ctx.lineCap='round'; ctx.shadowColor='#387db4'; ctx.shadowBlur=20; ctx.beginPath(); ctx.arc(0,0, state.rShield, -aw/2, aw/2); ctx.stroke(); const pw=state.shieldWidth*state.parryWindowRatio; const g3=ctx.createLinearGradient(state.rShield-10,0,state.rShield+10,0); g3.addColorStop(0,'rgba(255,209,102,.95)'); g3.addColorStop(1,'rgba(255,255,255,.95)'); ctx.strokeStyle=g3; ctx.lineWidth=6; ctx.globalAlpha=0.9; ctx.beginPath(); ctx.arc(0,0, state.rShield, -pw/2, pw/2); ctx.stroke(); ctx.globalAlpha=1; ctx.restore();
+  // threats
+  for(const th of state.threats){ ctx.save(); ctx.rotate(th.angle); ctx.fillStyle=th.color; ctx.shadowColor=th.color; ctx.shadowBlur=(th.special?30:16); const r=th.r; const sz=(th.special?14:(th.type==='fast'?9:(th.type==='mine'?12:10))); ctx.beginPath(); ctx.arc(r,0,sz,0,TAU); ctx.fill(); ctx.strokeStyle=th.color; ctx.lineWidth=2; ctx.globalAlpha=0.7; ctx.beginPath(); ctx.moveTo(r,0); ctx.lineTo(r + (th.deflected? 28: -28), 0); ctx.stroke(); ctx.globalAlpha=1; ctx.restore(); }
+  // particles
+  for(const p of state.particles){ const t=1-(p.age/p.life); ctx.fillStyle=p.color; ctx.globalAlpha=Math.max(0,t); ctx.shadowColor=p.color; ctx.shadowBlur=18*t; ctx.beginPath(); ctx.arc(p.x-state.center.x,p.y-state.center.y,2+2*t,0,TAU); ctx.fill(); }
+  ctx.shadowBlur=0; ctx.globalAlpha=1; ctx.restore(); stageEl.textContent=state.stage; }
+
+// Toast
+let toastTimer=null; function showToast(msg,dur=1200){ toastEl.textContent=msg; toastEl.classList.add('show'); if(toastTimer) clearTimeout(toastTimer); toastTimer=setTimeout(()=>toastEl.classList.remove('show'), dur); }
+
+// HiDPI resize
+function resizeCanvas(){ const ratio=Math.min(3, window.devicePixelRatio||1); const size=Math.min(window.innerWidth-360, window.innerHeight-220); const px=Math.max(420,size); cvs.width=Math.floor(px*ratio); cvs.height=Math.floor(px*ratio); state.width=cvs.width; state.height=cvs.height; state.center={x:cvs.width/2,y:cvs.height/2}; state.rBase=Math.min(cvs.width,cvs.height)/2*0.68; state.rShield=Math.min(cvs.width,cvs.height)/2*0.36; state.rCore=Math.min(cvs.width,cvs.height)/2*0.09; }
+window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+// Inicial
+applyUpgradesToStats(); livesEl.textContent=state.lives; cellsEl.textContent=state.cells; bestEl.textContent=state.best; statusEl.textContent='Menu';
+function openPreRun(){ mainMenu.classList.remove('open'); preRun.classList.add('open'); qsa('input[name="diff"]').forEach(r=>r.checked=(r.value===prefs.defaultDiff)); customPanel.style.display = (prefs.defaultDiff==='custom')? 'block':'none'; }
+</script>
 </body>
 </html>

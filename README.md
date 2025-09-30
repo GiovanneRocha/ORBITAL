@@ -1,22 +1,25 @@
-# ORBITAL v7.1 — Melhorias gerais (Loja, Start, Menu)
+# ORBITAL v7.3 — Histórico/Favoritos, Missões, Nova animada, Economia ajustada
 
-## Novidades desta build
-- **Menu Principal** (overlay): Acesso a Jogar, Laboratório, Configurações e Créditos.
-- **Pré‑Partida**: seleção de dificuldade (Casual, Clássico, Extremo) com efeitos em vida, ritmo de spawn, pontos e bits.
-- **Menu de Pausa** (Esc/P): Retomar, Loja, Lab, Configurações, Recomeçar, Menu Principal.
+## Destaques
 - **Loja aprimorada**:
-  - **Tiers** por fase + **pesos de raridade** escalam com Nível (Lifetime).
-  - **Fichas de Rerrol**: ganhas ao derrotar boss; consumidas antes dos bits.
-  - **Confirmação de compra** (opcional em Configurações), Lock por slot, custo de Rerrol progressivo.
-- **Configurações**: Volume, Reduzir movimento, Confirmar compras, Pausa automática ao trocar de aba, reset de progresso.
-- **Qualidade de vida**: Toaster consistente, badges de Tier/Nível/Recorde no HUD e Menu, PWA mantido.
+  - **Favoritos** (⭐) por item — opção "favoritos primeiro" nas Configurações.
+  - **Histórico**: últimas **vistas** e **compras** (até 20 cada), com exibição resumida na Loja.
+  - Mantidos: **Ofertas limitadas** (-20% por sessão), **Reroll** com **Fichas**, **Lock** e **Undo (3s)**.
+- **Missões diárias** (overlay dedicado):
+  - 3 missões básicas por dia: *Defletir 50*, *Derrotar 1 Boss*, *Alcançar Fase 6*.
+  - Recompensas: **Bits**, **Fichas**, **Células** (bits são aplicados na próxima run se não estiver jogando).
+- **Barra da Nova (HUD)**: cooldown com animação e destaque visual quando pronta.
+- **Economia ajustada**:
+  - **Bits por deflect** escalam levemente com a **Fase** (até +40%).
+  - **Boss** concede bits escalonados pelo **Tier/Fase** e **Fichas** (2 fichas no Tier III).
+  - **Células por run** combinam pontuação, bosses derrotados e progresso de fase.
 
 ## Como rodar
-1. Servir a pasta em **localhost** (PWA/Service Worker exigem HTTPS/localhost):
-   - VS Code Live Server, `npx serve`, `python -m http.server 5500`, etc.
-2. Abrir `http://localhost:PORT/index.html` e, se quiser, instalar como **PWA**.
-3. No Menu: **Jogar** → escolha a dificuldade no **Pré‑Partida** → Iniciar.
+1. Servir em **localhost**: `python -m http.server 5500` (ou Live Server).
+2. Abrir `http://localhost:5500/` e instalar como **PWA** (opcional).
+3. Fluxo recomendado: **Menu** → **Pré‑Partida** → **Iniciar** → Explore **Loja** e **Missões**.
 
 ## Persistência (localStorage)
-- `orbital_lifetime_v7_1` (Lifetime Pontos), `orbital_upgrades_v7_1` (upgrades), `orbital_cells_v7_1` (células), `orbital_highscore` (recorde), `orbital_prefs_v7_1` (preferências).
+- `orbital_lifetime_v7_3`, `orbital_upgrades_v7_3`, `orbital_cells_v7_3`, `orbital_prefs_v7_3`
+- `orbital_shop_history_v7_3` (vistas/compras/favoritos), `orbital_daily_v7_3` (missões), `orbital_bank_v7_3` (bits pendentes de missões), `orbital_highscore` (recorde)
 
